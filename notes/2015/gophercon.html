@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>GopherCon 2015 Recap</h2>
+
+    <div>
+        <p>With todays release of the <a href="https://www.youtube.com/playlist?list=PL2ntRZ1ySWBf-_z-gHCOR2N156Nw930Hm">videos from GopherCon 2015</a> I thought I would write up my 5 minutes recap of the conference, in case it helps someone pick the videos that might interest them.</p>
+<h4>Go Kit: A Standard Library ...</h4>
+<p><em>Peter Bourgon</em></p>
+<p>Codifying what it means to write a microservice at a “modern enterprise”. Providing a standard set of APIs for services that wrap common libraries.</p>
+<ul>
+<li>Transports</li>
+<li>Logging</li>
+<li>Instrumentation</li>
+</ul>
+<h4>Delve Into Go</h4>
+<p><em>Derek Parker Engineer at Hashrocket</em></p>
+<p>Delve is a Go debugger, that works directly on the binary. Looks like some special build steps are involved to keep symbols but not a code injection solution. Go-aware so that goroutines are available and understood, unlike in gdb. Very early release.</p>
+<h4>How a complete beginner learned Go ...</h4>
+<p><em>Audrey Lim Developer Evangelist at Nitrous.IO</em></p>
+<p>Amazing talk by a lawyer turned developer. Learned HTTP/CSS/JS then wanted to learn about the “backend”. Lots of issues with trying to learn python or ruby because of frameworks. Enjoyed go’s simplicity because it allowed her to focus on the problems she wanted to solve.</p>
+<h4>A Practical Guide to Preventing Deadlocks ...</h4>
+<p><em>Richard Fliam Software Engineer Lead on Comcast VIPER’s Pillar linear packager</em></p>
+<p>Advice …</p>
+<ul>
+<li>Focus on DataFlow</li>
+<li>Draw flow</li>
+<li>Pipelines</li>
+<li>Exit Strategies</li>
+</ul>
+<p>One of the big lessons from this talk that hit home for me was that CSP != OOP. This really changed the way I am thinking about Go.</p>
+<h4>Go GC: Solving the Latency Problem</h4>
+<p><em>Rick Hudson Engineer at Google</em></p>
+<p>Go 1.5 has a new Garbage collector</p>
+<ul>
+<li>Mark and sweep</li>
+<li>Uses app “help” to identify changes during the mark phase</li>
+<li>Trades throughput for latency</li>
+</ul>
+<p>More improvements coming in 1.6</p>
+<h4>Simplicity and Go</h4>
+<p><em>Katherine Cox-Buday Software Engineer at Canonical</em></p>
+<p>Go’s quest for simplicity is clouded by - pop culture, a desire for ease, appeals to authority, small projects/std lib as examples. Easy and Simple aren’t the same thing. What’s really driving simplicity - simple language, composability, concurrency, code that scales, duck typing. Don’t Simplify by Coincidence.</p>
+<h4>Rebuilding Parse.com in Go - an opinionated rewrite</h4>
+<p><em>Abhishek Kona Engineer at Parse.com</em></p>
+<p>Parse was a Ruby on Rails shop - moved to Go one process at a time.</p>
+<ul>
+<li>No downtime</li>
+<li>Backward compatibility</li>
+</ul>
+<p>At least one service supports 6x the concurrent connections after rewrite. Tests run in ⅛ of the time, and apps start an order of magnitude faster. Created lots of libraries - dep injection, graceful restarts, error reporting, “generics”.</p>
+<h4>Prometheus: Designing and Implementing ...</h4>
+<p><em>Björn Rabenstein Production Engineer at SoundCloud</em></p>
+<p>Focused on a couple problems in the prometheus code base. Atomic are faster than channels and locks. Doubles can be wrapped into 64 bits for atomic ops. Running benchmarks in go now allows for multiple CPU settings so that you can compare across different resources.</p>
+<h4>What Could Go Wrong?</h4>
+<p><em>Kevin Cantwell Lead Architect at Timehop</em></p>
+<p>Lots of lessons from programming in Go</p>
+<ul>
+<li>Don’t modify maps while ranging over them</li>
+<li>Closures hold pointers to values - so very dangerous in loops</li>
+<li>Arrays are pass by value &lt;- very very confusing</li>
+<li>Typed values returned as an interface aren’t nil</li>
+<li>You can override pre-declared values in your package - and that is really scary</li>
+</ul>
+<h4>Static Code Analysis Using SSA</h4>
+<p><em>Ben Johnson Open source Go developer in databases &amp; distributed systems</em></p>
+<p>There is an experimental package called SSA</p>
+<ul>
+<li>Provides an internal representation, like assembly, of the code</li>
+<li>Can be used to track data flow</li>
+</ul>
+<p>Several really cool tools are built on top of this</p>
+<ul>
+<li>safesql looks for sql injection</li>
+<li>gorename does safe renaming</li>
+</ul>
+<h4>Go for Mobile Devices</h4>
+<p><em>Hana Kim Engineer at Google</em></p>
+<p>Ongoing project to build mobile apps in Go. You can now compile static and dynamic libraries with go - which you can link in manually (think JNI). Building tools for better language bindings.
+Released an ios and android app called “ivy” written by Rob Pike in Go.</p>
+<h4>Go Dynamic Tools</h4>
+<p><em>Dmitry Vyukov Bug slaughterer at Google</em></p>
+<p>Built a race detector, fuzzer and execution tracer. Talked a lot about fuzz tests, which have found a number of issues in the stdlib and in other places.</p>
+<ul>
+<li>Randomized input into tests based on initial set of inputs</li>
+<li>Smart mutations</li>
+</ul>
+<h4>Embrace the Interface</h4>
+<p><em>Tomás Senart Software Engineer and Author of Vegeta</em></p>
+<p>Minimize interface methods so they don’t leak functionality. Use the decorator pattern to wrap interfaces implementations with other implementations - nice example in the talk for HTTP client. Go is about composition.</p>
+<h4>Uptime: Building Resilient Services with Go</h4>
+<p><em>Blake Caldwell Developer, Kentik</em></p>
+<p>Case study of an SSH Proxy at Fog Creek for Kiln. Lots of real world advice. Example of setting a version variable value at compile/build time. Discussion of pprof and Fog Creek open source profiling library.</p>
+<blockquote>
+<p>I worked with Blake on this project. His talk is really interesting and the library he built for runtime profilling is really useful.</p>
+</blockquote>
+<h4>The Many Faces of Struct Tags</h4>
+<p><em>Sam Helman Software Engineer at Flatiron Health</em></p>
+<p><em>Kyle Erf Kernel Tools Engineer at MongoDB</em></p>
+<p>Struct Tags are comments inside a struct definition. Encoding libraries use them to set names and flags. Rely on convention, but go vet knows the convention as does reflection. There are some interesting libraries that use these for validation and mapping.</p>
+<h4>Betting the Company on Go and Winning</h4>
+<p><em>Kelsey Hightower Product Manager, Developer and Chief Advocate at CoreOS</em></p>
+<p>Using Go for many tools: etcd, rkt, flannel. Discussed some of the issues with vendoring, but 1.5 is working toward solutions.</p>
+<h4>Go History</h4>
+<p>There were 3 talks focused on Go's history and some of its future.</p>
+<p><strong>The Roots of Go</strong></p>
+<p><em>Baishampayan Ghose Co-founder at Helpshift</em></p>
+<p><strong>The Evolution of Go</strong></p>
+<p><em>Robert Griesemer Engineer at Google</em></p>
+<p><strong>Closing Keynote</strong></p>
+<p><em>Andrew Gerrand Engineer at Google</em></p>
+<h4>and More ...</h4>
+<p><strong>Cayley: Building a Graph Database</strong></p>
+<p><em>Barak Michener Backend Developer at CoreOS and lead maintainer of Cayley</em></p>
+<p>Cayley is a graph database built on other datastores. Discussion of how to optimize this process.</p>
+<p><strong>Code Generation For The Sake Of Consistency</strong></p>
+<p><em>Sarah Adams Software Engineer at Restless Bandit</em></p>
+<p>Discussion on using code generation to build docs from tests and vice-versa. I think Sarah needed some guidence on this talk and unfortunately I can't recommend it.</p>
+<h4>and More ...</h4>
+<p><strong>Pre-Talk on Sets in Go - github/xtgo/set</strong></p>
+<pre class="codehilite"><code>// Inter performs an in-place intersection on the two sets [0:pivot] and
+// [pivot:Len]; the resulting set will occupy [0:size]. Inter is both
+// associative and commutative.
+func Inter(data sort.Interface, pivot int) (size int) {</code></pre>
+
+
+<p>Interesting shift from defining a data structure to defining operations</p>
+<h4>Resources</h4>
+<p><strong><a href="https://github.com/gophercon/2015-talks">Slides</a></strong></p>
+<p><strong><a href="https://www.youtube.com/playlist?list=PL2ntRZ1ySWBf-_z-gHCOR2N156Nw930Hm">Videos</a></strong></p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2015-07-28)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/go/" class="tag">
+                go
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

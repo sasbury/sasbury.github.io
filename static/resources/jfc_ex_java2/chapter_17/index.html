@@ -1,0 +1,87 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>Programming with JFC: Chapter 17</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000EE"
+vlink="#551A8B" alink="#FF0000">
+
+<p align="center">&nbsp; </p>
+<div align="center"><center>
+
+<table border="0" width="550" cols="1">
+    <tr>
+        <td><h1 align="center">Chapter 17 Examples </h1>
+        <hr size="3" width="85%">
+        <dl>
+            <dd>&nbsp;</dd>
+            <dt>Pluggable Look and Feel <img
+                src="/static/img/updated.gif" width="15"
+                height="15"></dt>
+            <dd><a href="windows2motif/Windows2Motif.java">Windows2Motif.java</a>
+                demonstrates the technique used to change the
+                current look and feel. Updated from the book to
+                account for the move of the windows and motif
+                packages into the plaf package. Note that the
+                Windows and Motif look and feel classes are still
+                in com.sun.java.swing.plaf.*.</dd>
+            <dd>&nbsp;</dd>
+            <dt>Animated Icon</dt>
+            <dd><a href="animatedIcon/AnimExample.java">AnimExample.java</a>
+                displays an animaged Icon using the gif89
+                standard. </dd>
+            <dd>&nbsp;</dd>
+            <dt>Custom Scrollpane Headers &amp; Corners</dt>
+            <dd><a href="rulers/HRuler.java">HRuler.java</a>
+                defines a horizontal ruler. <a
+                href="rulers/VRuler.java">VRuler.java</a> defines
+                a vertical ruler. <a href="rulers/Corner.java">Corner.java</a>
+                defines a a component that triggers scrolling to
+                a particular corner. <a
+                href="rulers/RulerExample.java">RulerExample.java</a>
+                displays an image in a JScrollPane with rulers
+                for headers and Corner objects at the corners. </dd>
+            <dd>&nbsp;</dd>
+            <dt>Custom List Model</dt>
+            <dd><a href="list_model/FileSystemListModel.java">FileSystemListModel.java</a>
+                defines custom list model that represents the
+                files in a directory. <a
+                href="list_model/FileList.java">FileList.java</a>
+                displays a window with a file-based list using
+                the command line arguments. </dd>
+            <dd>&nbsp;</dd>
+            <dt>Undo <img src="/static/img/updated.gif"
+                width="15" height="15"></dt>
+            <dd><a href="undo/KeyEdit.java">KeyEdit.java</a>
+                defines an undoable edit that represents a single
+                key press. <a href="undo/UndoExample.java">UndoExample.java</a>
+                displays text pane and keeps track of edits using
+                a key listener. This example was updated from the
+                version in the book to support a change in the <font
+                face="Times New Roman"><code>select</code></font>
+                method for text field. The undo selection is
+                moved forward rather than backwards.</dd>
+            <dd>&nbsp;</dd>
+            <dd>For the Java 2 version, we changed the
+                implementation again to match the current
+                behavior of the text field. Also, the UndoExample
+                class now uses the <font face="Times New Roman"><code>keyReleased</code></font>
+                rather than the <font face="Times New Roman"><code>keyTyped</code></font>
+                method to register the edit. Our installation did
+                not notify the KeyListener of the typed event.</dd>
+        </dl>
+        </td>
+    </tr>
+    <tr>
+        <td><font color="#777777" size="1"><br>
+        <br>
+        Copyright © 1998, John Wiley and Sons, Inc. </font></td>
+    </tr>
+</table>
+</center></div>
+</body>
+</html>

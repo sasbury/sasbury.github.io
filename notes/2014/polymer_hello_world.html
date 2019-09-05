@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Polymer, Hello World, NEXTSTEP Style</h2>
+
+    <div>
+        <p>I am at <a href="https://www.google.com/events/io">Google I/O</a> this week. Since I am mostly doing web development right now, I was most interested in their announcements around <a href="http://www.polymer-project.org/">polymer</a> and web components. Polymer looks like a really cool library on top of a really cool technology, and the talks I have seen have prompted me to do a couple posts.</p>
+<p>This first post is based on my initial encounter with the <a href="http://www.polymer-project.org/tools/designer/">Polymer Designer</a> and a question I had about polymer while I was watching the talks today. The question is - How do you link data between components?</p>
+<p>I saw a hint of what to do in a presentation, so when I started using the designer I thought, I am going to build the classic NEXTSTEP Interface Builder demo. That demo was basically to hook a text field to a slider and have changes to one update the other one.</p>
+<p>Let's do that in Polymer Designer.</p>
+<hr />
+<p>When you first open the designer you will either have an empty canvas, or a bunch of components in a tabbed/card view. If you have lots of stuff, just delete it.</p>
+<ol>
+<li>
+<p>Go to the <em>Palettes</em> and open the <em>Paper</em> elements. These are more fun to look at than the core elements.</p>
+<p><img class="sshot" alt="sshot: palettes" src="../../../static/img/polymer_helloworld/palettes.png" /></p>
+</li>
+<li>
+<p>Find the <em>Input</em> element and drag it out.</p>
+<p><img class="sshot" alt="sshot: input element" src="../../../static/img/polymer_helloworld/input.png" /></p>
+</li>
+<li>
+<p>Find the <em>Slider</em> element and drag it out.</p>
+<p><img class="sshot" alt="sshot: slider element" src="../../../static/img/polymer_helloworld/slider.png" /></p>
+</li>
+<li>
+<p>Organize the elements however you want.</p>
+<p><img class="sshot" alt="sshot: layout" src="../../../static/img/polymer_helloworld/layout.png" /></p>
+</li>
+<li>
+<p>Select the slider and find the <em>value</em> property on the right side.</p>
+<ol>
+<li>
+<p>Press the little <em>link</em> button on the value property.</p>
+<p><img class="sshot" alt="sshot: value property" src="../../../static/img/polymer_helloworld/value_prop.png" /></p>
+</li>
+<li>
+<p>Select <em>paper-input</em> in the pop-up. This corresponds to the id you gave the input item, or rather that it got by default.</p>
+</li>
+<li>
+<p>Type <code>value</code> in the field to link the slider's value property to the element <code>paper-input</code>'s value property.</p>
+<p><img class="sshot" alt="sshot: bound property" src="../../../static/img/polymer_helloworld/bound_prop.png" /></p>
+</li>
+</ol>
+</li>
+<li>
+<p>Try it out. Type a number between 0 and 100 in the field. Move the slider. The field will update when you let go of the slider.</p>
+<p><img class="sshot" alt="sshot: final gui" src="../../../static/img/polymer_helloworld/final.png" /></p>
+</li>
+</ol>
+<p>To see what the "code" looks like, you can hit the little code button at the top left of the tool bar <img alt="code" src="../../../static/img/polymer_helloworld/code.png" />.</p>
+<p>This will give you something like:</p>
+<pre class="codehilite"><code>&lt;link rel=&quot;import&quot; href=&quot;../paper-input/paper-input.html&quot;&gt;
+&lt;link rel=&quot;import&quot; href=&quot;../paper-slider/paper-slider.html&quot;&gt;
+
+&lt;polymer-element name=&quot;my-element&quot;&gt;
+
+  &lt;template&gt;
+    &lt;style&gt;    
+      :host {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      #paper_input {
+        left: 360px;
+        top: 170px;
+        position: absolute;
+      }
+      #paper_slider {
+        left: 380px;
+        top: 250px;
+        position: absolute;
+      }
+    &lt;/style&gt;
+    &lt;paper-input label=&quot;Type something...&quot; inputvalue=&quot;47&quot; value=&quot;47&quot; id=&quot;paper_input&quot;&gt;&lt;/paper-input&gt;
+    &lt;paper-slider immediatevalue=&quot;47&quot; value=&quot;{{ $.paper_input.value }}&quot; id=&quot;paper_slider&quot;&gt;&lt;/paper-slider&gt;
+  &lt;/template&gt;
+
+  &lt;script&gt;
+
+    Polymer('my-element', {
+
+    });
+
+  &lt;/script&gt;
+
+&lt;/polymer-element&gt;</code></pre>
+
+
+<p>See how the value of the slider is set to <code>$.paper_input.value</code> using the template &amp; data-binding notation <code>{{ }}</code>. So whenever the value of the text field changes, the slider updates, and vice-versa.</p>
+<p>And thats it. The NEXTSTEP super-simple Hello World Demo for the Polymer Designer. Just about as easy as it was in Interface Builder, and even easier in some ways.</p>
+<hr />
+<p>Oh And don't hit refresh if you haven't saved. You lose all your work. As I learned five or six times when I was trying to take screen shots.</p>
+<hr />
+<p>Happy polymer-ing</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2014-6-25)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/polymer/" class="tag">
+                polymer
+            </a>
+        
+            <a href="/tag/nextstep/" class="tag">
+                nextstep
+            </a>
+        
+            <a href="/tag/programming/" class="tag">
+                programming
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

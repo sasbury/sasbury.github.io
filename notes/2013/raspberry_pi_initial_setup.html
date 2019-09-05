@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Setting Up My First Raspberry Pi</h2>
+
+    <div>
+        <p>I got my <a href="http://www.raspberrypi.org">Raspberry Pi</a> over the weekend, so I wanted to get started and see what I could do with it.</p>
+<p><img alt="first pi" src="/static/img/posts/first_pi.jpg" /></p>
+<p>I ordered from <a href="http://www.mcmelectronics.com/content/en-US/raspberry-pi">MCM Electronics</a> and was able to get the PI with a clear case for $41.99 and the power supply for 6.61, much cheaper than Amazon, when I checked.</p>
+<p>The first thing I did after poking around <a href="http://www.raspberrypi.org/phpBB3/viewtopic.php?t=12776">some</a> is find the <a href="http://www.berryterminal.com/doku.php/berryboot">berryboot</a> boot loader and os installer utility. This made installing the OS much easier.</p>
+<p>Berryboot is super easy to use, you just download a zip file and copy it to your SD card. So, I downloaded berryboot and prepared to copy it. First I put my new 8GB SDHC card into my macbook pro and tried to copy the zip file's contents to the SD card.</p>
+<p><em>No luck</em></p>
+<p>So I thought maybe the card was locked, and checked the lock switch on it.</p>
+<p><em>Still no luck</em></p>
+<p>Turns out the card is formatted with a file system that the mac can only read.</p>
+<p>So I tried a couple USB-Card <em>whatchamacallits</em> that I had lying around, neither worked. I finally had to use my old netbook which has Ubuntu and an SDHC reader and actually understands multiple file systems.</p>
+<p>Once the SD card was ready, I put it in the PI and plugged it in. The berryboot loader appeared, as expected. I installed <em>Rhaspbian wheezy</em>, rebooted, configured the keyboard and such, and <strong>BAM</strong>, Raspberry PI engaged. I am curious about some of the other OS installs the berryboot supports and am excited to try them in the future.</p>
+<p>A quick Google told me that the default login for the <em>wheezy</em> os is:</p>
+<pre class="codehilite"><code>Username: pi
+Password: raspberry</code></pre>
+
+
+<p>Next I did some quick maintanance to make sure everything was up to date:</p>
+<pre class="codehilite"><code>&gt; sudo apt-get update
+&gt; sudo apt-get upgrade</code></pre>
+
+
+<p>The upgrade step takes a while, but i suspect it is worth it. Next I installed Git, VIM and some python packages to make development easier.</p>
+<pre class="codehilite"><code>&gt; sudo apt-get install git-core
+&gt; sudo apt-get install vim python-dev python-setuptools</code></pre>
+
+
+<p>Overall a really easy and fun experience. The only hard part was dealing with the SDHC card and that really shouldn't be an issue. Berryboot was super was super easy to use and I can't recommend it enough. One side effect of using Berryboot is that it appears to have made sure to use my full memory card for the boot partition, something that other people have posted requires some extra steps if you use the standard installation process.</p>
+<p>I am finding the command:</p>
+<pre class="codehilite"><code>&gt; df -h</code></pre>
+
+
+<p>a nice, user friendly way to check disk usage, which seems pretty important with only an 8GB card.</p>
+<p>I have a bunch of articles planned for my PI, but that should do it for now. So to shut it down in a nice way:</p>
+<pre class="codehilite"><code>&gt; sudo poweroff</code></pre>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-1-23)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/linux/" class="tag">
+                linux
+            </a>
+        
+            <a href="/tag/raspberry%20pi/" class="tag">
+                raspberry pi
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

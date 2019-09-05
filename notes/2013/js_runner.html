@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Simple JS Examples</h2>
+
+    <div>
+        <p>While I was writing <a href="/notes/2013/js_scope.html">this post about JavaScript</a> I wanted to make an easy way to include JavaScript in my markdown and also show output from the scripts. I came up with the following idea. What if I can mark each example with a CSS class, I called it <code>runnable</code>, and then evaluate the examples on a page and put the output their results into a <code>pre</code> element below the code. There are a couple design decisions that went into the implementation.</p>
+<p>First, I am putting raw HTML in the markdown to assign the CSS class. This also allows me to use the <a href="http://code.google.com/p/google-code-prettify/">Google Code Prettify</a> JS and CSS to add line numbers and syntax coloring to each example. I am not assigning runnable to all code elements so I don't want to use my base style sheet or process all <code>pre</code> elements.</p>
+<p>Second, when the runnable class is found, the content of that DOM element will be considered code and will be run. Moreover, a function called <code>log</code> is defined in a way that will allow it to be output to a <code>pre</code> element below the code. For example, the following code in one of my markdown files:</p>
+<pre class="prettyprint lang-javascript linenums">&lt;pre class=&quot;runnable prettyprint lang-javascript linenums&quot;&gt;
+    var x = 1;
+    var y = 2;
+    var z = x + y;
+    log(z);
+&lt;/pre&gt;
+</pre>
+
+<p>will generate the following output:</p>
+<pre class="runnable hidden">
+    var x = 1;
+    var y = 2;
+    var z = x + y;
+    log(z);
+</pre>
+
+<p>The code for processing the <code>runnable</code> segments is defined in a script at the bottom of the page (actually a template page):</p>
+<pre class="codehilite"><code>&lt;script&gt;
+$(document).ready(function() {
+
+  $('.runnable').each(function(index,element){
+
+    var code = $(element).text();
+
+    $('&lt;pre id=&quot;log'+index+'&quot;&gt;&lt;/pre&gt;').insertAfter(element);
+
+    code = &quot;function log(str){$('#log&quot;+index+&quot;').append(str+'\\n');}\n&quot;+code;
+
+    try
+    {
+      eval(code);
+    }
+    catch(err)
+    {
+      $('#log'+index).append(err.message+'\n');
+    }
+  });
+
+  prettyPrint();
+
+});
+&lt;/script&gt;</code></pre>
+
+
+<p>This script uses the standard JQuery <em>document ready</em> pattern. Once the page is loaded, I look for elements with the CSS class <code>runnable</code>. For each element I:</p>
+<ul>
+<li>Grab the content</li>
+<li>Append a <code>pre</code> element after the code element. This new element is used for output and has an id based on the index of the runnable, <code>log+&lt;index&gt;</code></li>
+<li>Define a function called <code>log</code> that will append text to the <code>pre</code> element. This function definition is prepended to the code</li>
+<li>Evaluate the code</li>
+<li>Re-run Googles <code>prettyPrint</code> to make sure all the code examples are formatted</li>
+</ul>
+<p>Originally I didn't have a <code>try-catch</code> around the <code>eval</code> statement. This is a mistake in general, but I also discovered that by including the <code>catch</code>, I could display error messages as well. For example, the following example is defined as a runnable and throws an exception which will be printed in the log.</p>
+<pre class="runnable prettyprint lang-javascript linenums">
+    var x = [];
+    log(x[1]);
+</pre>
+
+<p>As I write more JavaScript examples, I think this new code, which is defined in a template, will make the markdown for posts even easier to write.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-2-20)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/javascript/" class="tag">
+                javascript
+            </a>
+        
+            <a href="/tag/html/" class="tag">
+                html
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

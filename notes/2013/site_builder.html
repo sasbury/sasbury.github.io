@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Building This Site</h2>
+
+    <div>
+        <p>When I decided to update my web site, I wanted, for ease of setup and maintenance, a static site. But I also wanted to be able to write using <a href="http://daringfireball.net/projects/markdown/">markdown</a>. My first idea was to write a script to process the markdown and build a site, but then I ran across <a href="https://nicolas.perriault.net/code/2012/dead-easy-yet-powerful-static-website-generator-with-flask/">this post</a>. Using Flask and a few other plug-ins I now have a really nice, easy to maintain script for building my site. This post is a basic code walk-through of the script. The complete script can be downloaded <a href="/static/resources/site_builder_for_post.py">here</a>.</p>
+<blockquote>
+<p>I am using <a href="http://twitter.github.com/bootstrap/">twitter bootstrap</a> with a few modifications for my CSS.</p>
+</blockquote>
+<p>The basic a folder structure for the site is:</p>
+<pre class="codehilite"><code>+ site
+|
+---- build
+|
+---- env 
+|
+---- src
+      |
+      ---- pages 
+      |
+      ---- static 
+      |
+      ---- templates</code></pre>
+
+
+<p>where <code>env</code> is the folder for a <a href="http://pypi.python.org/pypi/virtualenv">virtual environment</a> for the python packages. The packages I am using are listed in the imports, as is <code>future</code> with statement I am using.</p>
+<pre class="codehilite"><code>from __future__ import with_statement
+
+import sys
+import os.path
+import shutil
+import zipfile
+import itertools
+import yaml
+import markdown
+import PyRSS2Gen
+
+from filecmp import dircmp
+from datetime import datetime
+from flask import Flask, render_template,abort,make_response
+from flask_frozen import Freezer
+from HTMLParser import HTMLParser</code></pre>
+
+
+<p>The most important one is <a href="http://pythonhosted.org/Frozen-Flask/">Frozen Flask</a> which will walk the flask application, using the url_for, function calls and save the site into the build folder. Unlike the post I based this project on, I didn't use FlatPages, instead I recreated the parts of that module that I needed.</p>
+<p>The script provides a number of commands:</p>
+<ul>
+<li>build - builds the site into the build folder</li>
+<li>static - runs the freezer and then hosts the site from that folder</li>
+<li>public - runs the flask app as a web server as a public server, doesn't do the freeze</li>
+<li><em>default</em> - runs the flask app as a web server on local host, doesn't do the freeze</li>
+</ul>
+<p>Each time I build the site, I save the old copy, and create an upload folder to hold files that have changed.</p>
+<pre class="codehilite"><code>DEBUG = True
+BUILD_FOLDER = '../build'
+OLD_BUILD_FOLDER = '../build_old'
+UPLOAD_FOLDER = '../upload'+datetime.strftime(datetime.utcnow(), &quot;_%Y_%b_%d_%H_%M_%S&quot;)
+FREEZER_DESTINATION = BUILD_FOLDER</code></pre>
+
+
+<p>As with any Flask application we create an application and in this case hook the Freezer plug in up to it.</p>
+<pre class="codehilite"><code>app = Flask(__name__)
+app.config.from_object(__name__)
+freezer = Freezer(app)</code></pre>
+
+
+<p>I keep track of all the files I have seen for the live version of this script.</p>
+<pre class="codehilite"><code>file_cache = {}</code></pre>
+
+
+<p>One of the things you may have noticed is that the front page, and post list, shows the first part of each post. This summary is calculated by removing all of the tags from the HTML for the post using the following code:</p>
+<pre class="codehilite"><code>#
+# From http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
+#
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()</code></pre>
+
+
+<p>The code for each page is contained in a markdown file. The file contains some <a href="http://www.yaml.org">YAML</a> at the top with a description of the page. For example, this page has the following header:</p>
+<pre class="codehilite"><code>title: Building This Site
+date: 2013-2-20
+tags: [python,flask,twitter bootstrap, html, javascript]</code></pre>
+
+
+<p>The code I wrote based on <a href="http://pythonhosted.org/Flask-FlatPages/">Flat Pages</a> walks the <code>pages</code> folder and processes each page. The pages are stored in an object with properties for the:</p>
+<ul>
+<li>path - the path to the page, as the site will see it</li>
+<li>yaml - the YAML header, up to the first blank line</li>
+<li>content - the raw content for the page</li>
+<li>html - generated from the content using markdown</li>
+<li>summary - calculated using the MLStripper code above, and then cut to 280 maximum characters</li>
+<li>meta - a dictionary of the values in the YAML</li>
+</ul>
+<p>These are calculated in the parsePage function.</p>
+<pre class="codehilite"><code>def parsePage(string, path):
+    lines = iter(string.split(u'\n'))
+    extensions = ['codehilite']
+    page = {}
+
+    page['path'] = path
+    page['meta_yaml'] = u'\n'.join(itertools.takewhile(unicode.strip, lines))
+    page['content'] = u'\n'.join(lines)
+    page['meta'] = yaml.safe_load(page['meta_yaml'])
+    page['html'] = markdown.markdown(page['content'], extensions)
+    page['summary'] = strip_tags(page['html'])[:280]+' ...' #first set of characters
+
+    if page['meta']['tags'] is None:
+        page['meta']['tags'] = []
+
+    return page</code></pre>
+
+
+<p>The page object also stores the latest modification time and the file path for each markdown file.</p>
+<pre class="codehilite"><code>def processFile(path, filepath):
+    mtime = os.path.getmtime(filepath)
+    with open(filepath) as fd:
+        content = fd.read().decode('utf8')
+    page = parsePage(content, path)
+    page['mtime'] = mtime
+    page['filepath'] = filepath
+    return page</code></pre>
+
+
+<p>Folders are processed looking for <code>.md</code> files that do not start with <code>_</code>. Files that start with underscore are ignored, allowing me to work on files while building the site for other updates.</p>
+<pre class="codehilite"><code>def processFolder(directory, path_prefix=(),pages={}):
+
+    for name in os.listdir(directory):
+        full_name = os.path.join(directory, name)
+        if os.path.isdir(full_name):
+            processFolder(full_name, path_prefix + (name,),pages)
+        elif name.endswith('.md') and not name.startswith('_'):
+            name_without_extension = name[:-len('.md')]
+            new_name = name_without_extension+'.html'
+            path = u'/'.join(path_prefix+(new_name,))
+            pages[path] = processFile(path, full_name)
+    return pages</code></pre>
+
+
+<p>When a page is requested, I check if the file is changed, and if so, update it, otherwise the page is returned for display.</p>
+<pre class="codehilite"><code>def getPage(path,pages, default=None):
+    page = None
+    try:
+        page = pages[path]
+        filepath = page['filepath']
+        mtime = os.path.getmtime(filepath)
+        if(page['mtime']!=mtime):
+            page = processFile(path,filepath)
+    except KeyError:
+        page = default
+
+    return page</code></pre>
+
+
+<p>Dates in the YAML can be one of four formats:</p>
+<ol>
+<li>circa <em>year</em></li>
+<li>archive</li>
+<li>year-month-day</li>
+<li>raw date string</li>
+</ol>
+<p>These will be used during sorting.</p>
+<pre class="codehilite"><code>def getPageDate(page):
+
+    dateString = str(page['meta']['date'])
+
+    if dateString.startswith('circa'):
+        return dateString.split(' ')[1]
+    elif dateString == '' or page['meta']['date'] is None:
+        return -1;
+    elif dateString == 'archive':
+        return &quot;2012&quot;;#rank these above circa, as a string like circa will be
+    else:
+        return dateString.split(' ')[0]</code></pre>
+
+
+<p>Using these functions I process all of the files in the pages folder and then separate them into posts for the <strong>notes</strong> section of the site and posts for the <strong>projects</strong> section of the site.</p>
+<p>I am using a hard coded link on each page to track a <code>parent_url</code> which I can use for a back link. On this page you can see the back link at the top and bottom of the page.</p>
+<pre class="codehilite"><code>pages = processFolder(os.path.join(app.root_path,u'pages'))
+
+projects = []
+posts = []
+
+for path,page in pages.items():
+    if path.startswith('projects'):
+        page['parent_url'] = '/portfolio/'
+        page['parent'] = 'Back to portfolio'
+        projects.append(page)
+    elif path.startswith('posts'):
+        page['parent_url'] = '/notes/'
+        page['parent'] = 'Back to notes'
+        posts.append(page)</code></pre>
+
+
+<p>Once all the posts are identified, I can build an RSS XML file using the PyRSS2Gen plug-in.</p>
+<pre class="codehilite"><code>rssItems = []
+
+for page in posts:
+    dateString = getPageDate(page)
+    dt = None
+
+    if isinstance(dateString, str) or isinstance(dateString, unicode):
+        if len(dateString)==4:
+            dt = datetime.strptime(dateString, &quot;%Y&quot;)
+        else:
+            dt = datetime.strptime(dateString, &quot;%Y-%m-%d&quot;)
+
+    item = PyRSS2Gen.RSSItem(
+         title = page['meta']['title'],
+         link = 'http://www.sasbury.com'+'/'+page['path'],
+         description = page['summary'],
+         guid = PyRSS2Gen.Guid('/'+page['path']),
+         pubDate = dt)
+
+    rssItems.append(item)
+
+rss = PyRSS2Gen.RSS2(
+    title = &quot;sasbury.com feed&quot;,
+    link = &quot;http://www.sasbury.com&quot;,
+    description = &quot;sasbury.com RSS feed&quot;,
+    docs = '',
+    lastBuildDate = datetime.utcnow(),
+    items = rssItems
+    )
+
+rssFeed = rss.to_xml('utf-8')</code></pre>
+
+
+<p>Finally, the Flask app defines its routes. The index is a real page, defined as a template, this page displays a list of posts and a list of projects, which i get by sub-setting the full lists. The lists are sorted in reverse order by date.</p>
+<pre class="codehilite"><code>@app.route('/')
+def index():
+    sorted_posts = sorted(posts, reverse=True, key=getPageDate)
+    sorted_projects = sorted(projects, reverse=True, key=getPageDate )
+    return render_template('index.html', posts=sorted_posts[:3],projects=sorted_projects[:3]
+                            ,projCount=len(projects),postCount=len(posts))</code></pre>
+
+
+<p>The notes page is another template which displays a full list of the posts. The list is sorted in reverse order by date.</p>
+<pre class="codehilite"><code>@app.route('/notes/')
+def notes():
+    sorted_posts = sorted(posts, reverse=True, key=getPageDate)
+    return render_template('notes.html', posts=sorted_posts)</code></pre>
+
+
+<p>The RSS route just returns the XML we calculated above.</p>
+<pre class="codehilite"><code>@app.route('/notes/sasbury_rss.xml')
+def rss():
+    return rssFeed, 200, {'Content-Type': 'application/xml; charset=utf-8'}</code></pre>
+
+
+<p>The portfolio page is another template which displays a full list of the posts. The list is sorted in reverse order by date.</p>
+<pre class="codehilite"><code>@app.route('/portfolio/')
+def portfolio():
+    sorted_projects = sorted(projects, reverse=True, key=getPageDate )
+    return render_template('portfolio.html', projects=sorted_projects)</code></pre>
+
+
+<p>Tags for each page are defined in the YAML. The route for each tag calculates the appropriate pages, sorts them and then displays them.</p>
+<pre class="codehilite"><code>@app.route('/tag/&lt;string:tag&gt;/')
+def tag(tag):
+
+    tagged = []
+
+    for path,page in pages.items():
+        tags = page['meta']['tags']
+        if tag in tags:
+            tagged.append(page)
+
+    sorted_pages = sorted(tagged, reverse=True, key=getPageDate)
+    return render_template('tag.html', pages=sorted_pages, tag=tag)</code></pre>
+
+
+<p>Other pages are all grouped into a single route that renders the pages using the final template.</p>
+<pre class="codehilite"><code>@app.route('/&lt;path:path&gt;')
+def page(path):
+    page = getPage(path,pages)
+
+    if not page:
+        abort(404)
+
+    return render_template('page.html', page=page)</code></pre>
+
+
+<p>When I run the freezer, I want to include several static pages, so those are included manually.</p>
+<pre class="codehilite"><code>@freezer.register_generator
+def books_url_generator():
+    # URLs as strings
+    yield '/books/ejava.html'
+    yield '/books/ejava2.html'
+    yield '/books/jfc.html'
+    yield '/books/lxatwork.html'</code></pre>
+
+
+<p>As I mentioned at the top of this post, I save the files that changed on each build into a new <code>upload</code> folder to minimize the size of each update. At some point I want to automate the upload, but unfortunately my current ISP doesn't provide an easy way for me to do this.</p>
+<pre class="codehilite"><code>def processDiff(dcmp):
+
+    #left is old build, right is new build
+
+    #first cmp won't have any left only, but later cmps might
+    if len(dcmp.left_only) &gt; 0:
+
+            src = dcmp.left
+            print &quot;Files or folders were deleted from %s, copying full folder&quot; % (src)
+            dest = src.replace(OLD_BUILD_FOLDER,UPLOAD_FOLDER)
+            shutil.copytree(src,dest)
+    else:
+        to = dcmp.left.replace(OLD_BUILD_FOLDER,UPLOAD_FOLDER)
+
+        if not os.path.exists(to) and len(dcmp.diff_files)&gt;0:
+            os.mkdir(to)
+
+        #copy new files
+        for name in dcmp.right_only:
+
+            src = os.path.join(dcmp.right,name)
+            dest = src.replace(BUILD_FOLDER,UPLOAD_FOLDER)
+
+            if os.path.isdir(src):
+                shutil.copytree(src,dest)
+            else:
+                parent = os.path.dirname(dest)
+
+                if not os.path.exists(parent):
+                    print &quot;creating %s&quot; % (parent)
+                    os.makedirs(parent)
+
+                shutil.copy(src,dest)
+
+        #copy changed files
+        for name in dcmp.diff_files:
+            src = os.path.join(dcmp.right,name)
+            dest = src.replace(BUILD_FOLDER,UPLOAD_FOLDER)
+            shutil.copy(src,dest)
+
+        #recurse
+        for sub_dcmp in dcmp.subdirs.values():
+            processDiff(sub_dcmp)</code></pre>
+
+
+<p>Finally, the app provides the commands. build creates the appropriate folders and freezes the site into the build folder before calculating the diff and loading the upload folder.</p>
+<pre class="codehilite"><code>if __name__ == '__main__':
+
+    if len(sys.argv) &gt; 1 and sys.argv[1] == &quot;build&quot;:
+
+        if os.path.exists(OLD_BUILD_FOLDER):
+            print &quot;Removing build backup&quot;
+            shutil.rmtree(OLD_BUILD_FOLDER)
+
+        if os.path.exists(BUILD_FOLDER):
+            print &quot;Moving previous build to build backup&quot;
+            os.rename(BUILD_FOLDER,OLD_BUILD_FOLDER)
+        else:
+            print &quot;Creating placeholder build backup&quot;
+            os.mkdir(OLD_BUILD_FOLDER)
+
+        if not os.path.exists(BUILD_FOLDER):
+            print &quot;Creating build folder&quot;
+            os.mkdir(BUILD_FOLDER)
+
+        print &quot;Compiling and saving site&quot;
+        freezer.freeze()
+
+        print &quot;Create diff of build with previous build&quot;
+        dcmp = dircmp(OLD_BUILD_FOLDER, BUILD_FOLDER)
+
+        ##check if we deleted anything, if so, we should copy the whole folder and be done
+        if len(dcmp.left_only) &gt; 0:
+            print &quot;Files or folders were deleted, copying full build&quot;
+            shutil.copytree(BUILD_FOLDER,UPLOAD_FOLDER)
+        else:
+            print &quot;Creating temporary upload folder&quot;
+            os.mkdir(UPLOAD_FOLDER)
+            processDiff(dcmp)
+
+        print &quot;Creating zip of upload folder&quot;
+        zip = zipfile.ZipFile(UPLOAD_FOLDER+&quot;.zip&quot;, 'w', zipfile.ZIP_DEFLATED)
+        for base, dirs, files in os.walk(UPLOAD_FOLDER):
+            for file in files:
+                fn = os.path.join(base, file)
+                zip.write(fn, fn[len('../'):])#keep the upload folder name but not the ../ part
+
+        if os.path.exists(UPLOAD_FOLDER):
+            print &quot;Removing temporary upload folder&quot;
+            shutil.rmtree(UPLOAD_FOLDER)
+
+        if os.path.exists(OLD_BUILD_FOLDER):
+            print &quot;Removing build backup&quot;
+            shutil.rmtree(OLD_BUILD_FOLDER)
+
+    elif len(sys.argv) &gt; 1 and sys.argv[1] == &quot;static&quot;:
+
+        freezer.run(port=8080)
+
+    elif len(sys.argv) &gt; 1 and sys.argv[1] == &quot;public&quot;:
+
+        app.run(host='0.0.0.0',port=8080)
+
+    else:
+
+        app.run(port=8080)</code></pre>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-2-19)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/python/" class="tag">
+                python
+            </a>
+        
+            <a href="/tag/flask/" class="tag">
+                flask
+            </a>
+        
+            <a href="/tag/twitter%20bootstrap/" class="tag">
+                twitter bootstrap
+            </a>
+        
+            <a href="/tag/html/" class="tag">
+                html
+            </a>
+        
+            <a href="/tag/javascript/" class="tag">
+                javascript
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

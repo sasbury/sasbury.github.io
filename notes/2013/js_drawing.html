@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Simple Canvas Examples</h2>
+
+    <div>
+        <p>In an earlier <a href="/notes/2013/js_runner.html">post</a> I talked about how I added the ability to include simple JS examples into my blog pages. I started working on some new code examples, and realized I want to be able to draw things as well. So now I added a class for automatically running javascript that draws onto a canvas. The idea is to be able to enter code into a post using a <code>pre</code> tag of the following form.</p>
+<pre class="prettyprint lang-javascript linenums">
+&lt;pre class="drawable prettyprint lang-javascript linenums"&gt;
+drawing.fillRect(0,0,25,25);
+&lt;/pre&gt;
+</pre>
+
+<p>and have it appear with a canvas area below it as:</p>
+<pre class="hidden drawable prettyprint lang-javascript linenums">
+drawing.fillRect(0,0,25,25);
+</pre>
+
+<p>The <code>drawable</code> class triggers the script that builds the canvas. The other classes just make the code look nice. All of the code inside the <code>pre</code> tags is run with two special variables. <code>canvas</code> has the newly inserted canvas element, and <code>drawing</code> has the 2d context for that canvas.</p>
+<p>By default the inserted canvas is <code>400 x 300</code> but that is often too big, so two attributes can be used to set the width and height of the inserted canvas. So that</p>
+<pre class="prettyprint lang-javascript linenums">
+&lt;pre class="drawable prettyprint lang-javascript linenums" data-canvas-width="75" data-canvas-height="75"&gt;
+drawing.fillRect(0,0,25,25);
+&lt;/pre&gt;
+</pre>
+
+<p>will show up as: </p>
+<pre class="hidden drawable prettyprint lang-javascript linenums" data-canvas-width="75" data-canvas-height="75">
+drawing.fillRect(0,0,25,25);
+</pre>
+
+<p>Adding a log below the canvas is as easy as adding the loggable class to
+the pre tag.</p>
+<pre class="prettyprint lang-javascript linenums">
+&lt;pre class="drawable loggable prettyprint lang-javascript linenums" data-canvas-width="75" data-canvas-height="75"&gt;
+drawing.fillRect(0,0,25,25);
+log('with logger')
+&lt;/pre&gt;
+</pre>
+
+<pre class="hidden loggable drawable prettyprint lang-javascript linenums" data-canvas-width="75" data-canvas-height="75">
+drawing.fillRect(0,0,25,25);
+log('with logger')
+</pre>
+
+<p>The code to process these drawable sections is like the code for processing runnable, but i realized i would like to have some shared code on the page. So I updated the documentReady handler to grab some shared code:</p>
+<pre class="codehilite"><code>var sharedCode = &quot;&quot;;
+
+$('.shared').each(function(index,element){
+
+  sharedCode += $(element).text();
+  sharedCode += &quot;\n&quot;;
+});</code></pre>
+
+
+<p>then I process the drawing elements:</p>
+<pre class="codehilite"><code>$('.drawable').each(function(index,element){
+    var code = $(element).text();
+    var width = $(element).data('canvas-width') || 400;
+    var height = $(element).data('canvas-height') || 300;
+
+    code = sharedCode +
+           &quot;var canvas = document.getElementById('canvas-&quot;+index+&quot;');\n&quot;+
+           &quot;var drawing = canvas.getContext('2d');\n&quot;+
+            &quot;drawing.fillStyle = \&quot;#000\&quot;;\n&quot; +
+            code;
+
+    var newHtml = '&lt;canvas id=&quot;canvas-'+index+'&quot; width=&quot;'+width+'&quot; height=&quot;'+height+'&quot;&gt;&lt;/canvas&gt;';
+
+    if($(element).hasClass('loggable')) {
+        code = &quot;function log(str){$('#log-&quot;+index+&quot;').append(str+'\\n');}\n&quot;+code;
+        newHtml = newHtml + '&lt;pre id=&quot;log-'+index+'&quot;&gt;&lt;/pre&gt;';
+    }
+
+    $(newHtml).insertAfter(element);
+
+    try
+    {
+      eval(code);
+    }
+    catch(err)
+    {
+      $('#log-'+index).append(err.message+'\n');
+    }
+});</code></pre>
+
+
+<p>as with the code to process runnable code examples, this code just finds all of the drawable elements gets their content, augments that content and evaluates it. A canvas and pre element are also added to the page for each drawable element.</p>
+<p>The default fill style is set to black to make it easy to draw in examples.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-9-14)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/javascript/" class="tag">
+                javascript
+            </a>
+        
+            <a href="/tag/canvas/" class="tag">
+                canvas
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

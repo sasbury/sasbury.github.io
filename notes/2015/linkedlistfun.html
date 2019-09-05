@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Linked List Fun</h2>
+
+    <div>
+        <p>Talking to some folks the other day a couple of fun problems came up:</p>
+<ul>
+<li>How do you find cycles in a linked list?</li>
+<li>How do you reverse a linked list?</li>
+</ul>
+<p>Both of these algorithms can be implemented with very little extra memory, and I thought it would be fun to build them in Go. The full solutions can be found <a href="https://github.com/sasbury/linkedfun">on github.</a></p>
+<p>For this code we will use a simple Node type that holds an integer value so that we can create "ordered" lists.</p>
+<pre class="codehilite"><code>type Node struct {
+    value int
+    next  *Node
+}</code></pre>
+
+
+<h2>Finding Cycles in a Linked List</h2>
+<p>Finding cycles in a linked list relies on two simple ideas. First, if you have a cycle in a linked list it has to be the end of the list. Second, if you walk two cursors around a circle of linked list nodes, at different speeds, eventually they will end up on the same node. In other words. if you start at the begining of a list and start walking one cursor one node at a time, and another cursor two nodes at a time, when they hit the loop the faster cursor will eventually catch the slower cursor and you will be able to identify the cycle.</p>
+<p>For a slow cursor we will use a function that moves forward one step when called:</p>
+<pre class="codehilite"><code>func slowStep(n *Node) *Node {
+    return n.next
+}</code></pre>
+
+
+<p>For the fast cursor we will move forward two steps when called:</p>
+<pre class="codehilite"><code>func fastStep(n *Node) *Node {
+    n = n.next
+
+    if n != nil {
+        n = n.next
+    }
+
+    return n
+}</code></pre>
+
+
+<p>In Go this algorithm looks like this:</p>
+<pre class="codehilite"><code>func FindCycle(head *Node) bool {
+
+    if head == nil {
+        return false
+    }
+
+    slowWalker := slowStep(head)
+    fastWalker := fastStep(head)
+
+    for slowWalker != nil &amp;&amp; fastWalker != nil {
+
+        if slowWalker == fastWalker {
+            return true
+        }
+
+        slowWalker = slowStep(slowWalker)
+        fastWalker = fastStep(fastWalker)
+    }
+
+    return false
+}</code></pre>
+
+
+<p>So we start at the head, and move forward immediately. This could result in getting to the end of a short list, which is fine. Then we continue to move forward, checking each time if we have found a cycle.</p>
+<p>To test this code, I created a function to build an ordered linked list of arbitrary length. Using those lists, I created a few different test scenarios:</p>
+<pre class="codehilite"><code>func TestNoCycle(t *testing.T) {
+    for i := 0; i &lt; NUM_TESTS; i = i + 1 {
+        head, _ := BuildList(i)
+        assert.False(t, FindCycle(head))
+    }
+}
+
+func TestFullCycle(t *testing.T) {
+    for i := 1; i &lt; NUM_TESTS; i = i + 1 {
+        head, tail := BuildList(i)
+        tail.next = head
+        assert.True(t, FindCycle(head))
+    }
+}
+
+func TestCycleWithPrefix(t *testing.T) {
+    for i := 1; i &lt; NUM_TESTS; i = i + 1 {
+        head, tail := BuildList(i)
+        cycleHead, cycleTail := BuildList(i)
+        tail.next = cycleHead
+        cycleTail.next = tail
+        assert.True(t, FindCycle(head), fmt.Sprintf(&quot;There should be a cycle of %d&quot;, i))
+    }
+}</code></pre>
+
+
+<p>and run the scenarios for various size lists, from 0 or 1 to 1000.</p>
+<p>What is great about this algorithm is that it uses almost no additional memory, just the two cursors. It does take time, as in the degenerate cases it might take a couple loops around the cycle to get the cursors to match up.</p>
+<p>You can read more about Floyd's cycle-finding algorithm on <a href="http://en.wikipedia.org/wiki/Cycle_detection">wikipedia</a>.</p>
+<h2>Reversing a Linked List</h2>
+<p>Reversing a linked list is a bit easier. Of course you could do this by creating a stack or array or some other data structure, but it is possible to reverse the list in place with just a couple extra pieces of data.</p>
+<pre class="codehilite"><code>func Reverse(head *Node) *Node {
+
+    h := head
+    n := head.next
+    h.next = nil
+
+    for n != nil {
+        newN := n.next
+        n.next = h
+        h = n
+        n = newN
+    }
+
+    return h
+}</code></pre>
+
+
+<p>First, you have to keep track of the new head. This is the node we will return as the new head of the linked list. Second, we keep track of the next element in the list. When that next element is nil, we are at the end of the list. Finally, we use a temporary variable to keep track of the "next next" element. This variable peeks ahead and lets us move the head forward while reversing its next to point backwards.</p>
+<p>In order to test my Reverse function I wrote a couple of utilities that check if the list passed to them is increasing or decreasing, using the integer values. Then I try reversing an increasing list and make sure I get a decreasing list.</p>
+<pre class="codehilite"><code>func TestReverse(t *testing.T) {
+    for i := 1; i &lt; NUM_TESTS; i = i + 1 {
+        head, tail := BuildList(i)
+
+        assert.True(t, Increasing(head))
+
+        reversed := Reverse(head)
+
+        assert.Nil(t, head.next)
+        assert.Equal(t, reversed.value, tail.value)
+        assert.True(t, Decreasing(reversed))
+
+        if i != 1 {
+            assert.NotNil(t, tail.next)
+        }
+    }
+}</code></pre>
+
+
+<p>Again I am performing the test on a 1000 different list links.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2015-3-4)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/algorithms/" class="tag">
+                algorithms
+            </a>
+        
+            <a href="/tag/programming/" class="tag">
+                programming
+            </a>
+        
+            <a href="/tag/go/" class="tag">
+                go
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

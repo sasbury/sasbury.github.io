@@ -1,0 +1,108 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>Programming with JFC: Chapter 12</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000EE"
+vlink="#551A8B" alink="#FF0000">
+
+<p align="center">&nbsp; </p>
+<div align="center"><center>
+
+<table border="0" width="550" cols="1">
+    <tr>
+        <td><h1 align="center">Chapter 12 Examples </h1>
+        <hr size="3" width="85%">
+        <dl>
+            <dd>&nbsp;</dd>
+            <dt>Note <img src="/static/img/updated.gif"
+                width="15" height="15"></dt>
+            <dd>All of the examples were updated from the book to
+                use the default font in the tables. All of the
+                examples were also updated for Java 2 by
+                replacing the deprecated <font
+                face="Times New Roman"><code>createScrollPaneForTable</code></font>
+                method with the standard JScrollPane constructor.</dd>
+            <dd>&nbsp;</dd>
+            <dt>Table Model</dt>
+            <dd><a href="table_model/FileSystemTableModel.java">FileSystemTableModel.java</a>
+                defines a custom table model based on the file
+                system. <a href="table_model/FileTable.java">FileTable.java</a>
+                displays information about a directory based on
+                the command line arguments. </dd>
+            <dd>&nbsp;</dd>
+            <dt>Table Selection Modes </dt>
+            <dd><a href="cell_sel/FileSystemTableModel.java">FileSystemTableModel.java</a>
+                defines a custom table model based on the file
+                system. <a href="cell_sel/CellFileTable.java">CellFileTable.java</a>
+                displays information about a directory based on
+                the command line arguments, this table supports
+                cell by cell selections.</dd>
+            <dd>&nbsp;</dd>
+            <dt>Table Selection Listeners</dt>
+            <dd><a href="sel_listener/FileSystemTableModel.java">FileSystemTableModel.java</a>
+                defines a custom table model based on the file
+                system. <a href="sel_listener/SelTable.java">SelTable.java</a>
+                displays information about a directory based on
+                the command line arguments, a
+                ListSelectionListener is used to receive
+                notifications when the table's selection changes.
+            </dd>
+            <dd>&nbsp;</dd>
+            <dt>Editable Table Models</dt>
+            <dd><a
+                href="edit_table_model/FileSystemTableModel.java">FileSystemTableModel.java</a>
+                defines an editable custom table model based on
+                the file system. <a
+                href="edit_table_model/EditFileTable.java">EditFileTable.java</a>
+                displays information about a directory based on
+                the command line arguments, the table supports
+                editing. </dd>
+            <dd>&nbsp;</dd>
+            <dt>JDBC and Tables <img
+                src="/static/img/updated.gif" width="15"
+                height="15"></dt>
+            <dd><a href="jdbc_model/JDBCTableModel.java">JDBCTableModel.java</a>
+                defines an editable custom table model based on
+                information in a database. JDBC is used to
+                retreive the information. <a
+                href="jdbc_model/JDBCTable.java">JDBCTable.java</a>
+                displays information from a database in a table.
+                Note, you will need to update the JDBC connection
+                information to run this example. <br>
+                <br>
+                We updated the JDBCTableModel from the book to no
+                longer say that the bit type is a boolean type.
+                This is not true for all drivers. There was also
+                a classic typo in the JDBCTableModel where the
+                break statements are left out of a switch
+                statement. These are fixed.</dd>
+            <dd>&nbsp;</dd>
+            <dt>Table Mouse Listeners</dt>
+            <dd><a href="table_clicks/FileSystemTableModel.java">FileSystemTableModel.java</a>
+                defines a custom table model based on the file
+                system. <a href="table_clicks/TripleClicker.java">TripleClicker.java</a>
+                defines a MouseListener that waits for triple
+                clicks. <a href="table_clicks/ClickTable.java">ClickTable.java</a>
+                displays information about a directory based on
+                the command line arguments, a TripleClicker is
+                assigned as a mouse listener for the table. If
+                you can't seem to get the triple click to be
+                caught, try clicking the mouse 4 times to make
+                sure that the events are being captured.</dd>
+        </dl>
+        </td>
+    </tr>
+    <tr>
+        <td><font color="#777777" size="1"><br>
+        <br>
+        Copyright © 1998, John Wiley and Sons, Inc. </font></td>
+    </tr>
+</table>
+</center></div>
+</body>
+</html>

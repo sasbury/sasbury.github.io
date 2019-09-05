@@ -1,0 +1,99 @@
+%!PS-Adobe-2.0
+%%Title: Paradigm Research Logo
+%%Creator: Stephen Asbury 
+%%CreationDate: June 17, 1994
+%%Pages: 0 1
+%%BoundingBox: 0 0 230 160
+%%DocumentFonts: Times-Bold
+%%EndComments
+
+%%procedure to draw the lower circle
+/DrawClosed {
+	/y exch def
+	/x exch def
+	gsave
+	x y 34 65 355 arc
+	16 setlinewidth
+	stroke
+
+	x y 12.5 0 360 arc
+	1 setlinewidth
+	closepath
+	fill
+	grestore}
+def
+
+%%Procedure to draw the upper circle
+/DrawOpen {
+	/y exch def
+	/x exch def
+	gsave
+	x y 34 245 175 arc
+	16 setlinewidth
+	stroke
+
+	x y 12.5  0 360 arc
+	closepath
+	2 setlinewidth
+	stroke
+	grestore}
+def
+
+%%Procedure to draw the "Squiggle"
+/DrawSquig {
+	/y2 exch def
+	/x2 exch def
+	/y1 exch def
+	/x1 exch def
+
+	/reallength {
+			x2 x1 sub 
+			x2 x1 sub mul 
+			y2 y1 sub 
+			y2 y1 sub mul 
+			add sqrt
+	}def
+
+	/length {reallength 0.4 mul} def
+
+	/hgt {22 length div} def
+
+	/P1{0.75 0} def
+	/P2 {.15 hgt} def
+	/P3 {.25 hgt neg} def
+	/P4 {0.5 0} def
+	/P5 {.75 hgt} def
+	/P6 {.85 hgt neg} def
+	/P7{1 0} def
+
+	gsave
+	
+	x1 y1 translate
+	length length scale
+	30 rotate
+
+	P1 translate
+	0 0 moveto
+	P2 P3 P4 curveto
+	P5 P6 P7 curveto
+	8 length div setlinewidth
+	2 setlinecap
+	0.7 setgray
+	stroke
+
+	grestore
+}def
+
+/c1 {80 60} def
+/c2 {145 97} def
+
+/radiusofcircle {48} def
+/ptsizefortext {10} def
+
+c1 DrawClosed
+c2 DrawOpen
+c1 c2 DrawSquig
+
+
+
+

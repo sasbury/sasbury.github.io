@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>The IDs Have It</h2>
+
+    <div>
+        <p>I was talking to my wife the other day about an application she uses at work.
+The application is used to track parts, and provides each part with a part
+number. She was talking about how hard it is to find parts, and my immediate
+thought was that the unique parts number would make it easy. The only problem is, the part numbers aren't guaranteed to be unique.
+They can be the same for different projects and those different projects are
+all in the same database.</p>
+<p>So I asked her if there was
+another, unique, identifier that she could use to find parts in the system. She
+said that she didnt' know of one. Which got me thinking. Did the guys that
+designed this system really not provide a unique identifier? And that got me
+thinking about how important unique identifiers are, and what an important part
+of software architecture they play.</p>
+<p>There are really two kinds of unique identifers at play in a software system:
+user-visible and implementation focused. User visible identifiers are things like part
+numbers. These may be memorized in some cases and could be used to look up
+items. Implementation ids are generally hidden from a user and might be used
+internally, for example, they may provide a unique field for database joins.
+Implementation ids are pretty standard, but user visible identifiers, like the
+part numbers in my wife's experience, require some more thought.</p>
+<h3>User Visible Identifiers</h3>
+<p>When building a REST API, or a web application, user visible identifiers
+(ids) are often used in URIs. For example, a part tracking application might
+have a URI like:</p>
+<p>http://host:port/project/parts/856</p>
+<p>where <code>856</code> is a unique part id. This example is really important because it
+demonstrates one of the key aspects of a user-visble identifier. Not only can
+a user see the id, they can memorize the id, or in this case bookmark a URI
+with the id. The public nature of this id makes it something that you do not
+want to change. It becomes an immutable property of the part in question.</p>
+<blockquote>
+<p>Immutability has a price.</p>
+</blockquote>
+<p>Imagine that you were writing a parts tracking system
+that only supported one project. You might assign every part a unique
+identifier starting from 1 (or maybe 0) and incrementing from there.
+Further, suppose that your system is used
+for 2 projects, but that they work separately. So each installation has its own
+counter and its own set of unique part numbers.</p>
+<p>Now the boss comes along and asks you to combine the systems. You have
+a quandry. If the same part number appears in both projects, and you combine
+the data, the part numbers are no longer unique. In other words, if Project A has a part numbered 1 and Project B has a part numbered 1 you can't build a unique set of parts for A+B by reusing the numbers you already have.</p>
+<p>Lest you think this is a made up example, our architecture for FogBugz is open to this specific problem. Currently each customer of <a href="http://www.fogcreek.com/fogbugz/">FogBugz</a> has a unique number for each case in the system. These unique values are customer dependent. There are as many case #1's as there are customers. If we had two customers ask to combine their databases, we would have to re-number at least one set of cases, making the currently public (immutable) id change.</p>
+<p>One advantage of the FogBugz design is that customer's experience their case
+ids in a very friendly manner. Your first case is #1, your second case is #2,
+etc.. Moreover, unless you make a lot of cases, the numbers will be small and
+not to overwhelming, perhaps even memorizable.</p>
+<blockquote>
+<p>Simple User-Visible IDs are more user friendly</p>
+</blockquote>
+<p>This got me thinking about two questions: If you already have a system, how can
+you keep user-visible IDs unique when combining two databases? When you are designing a new system how do you provide future-proofed user-visible identifiers? </p>
+<h4>Architecting for User Visible IDs</h4>
+<p>The easiest way to combine two database with overlapping ids is probably just to re-assign IDs.
+This isn't the nicest solution but it certainly works. Simply build a new
+database and assign a new unique id for every item as you add it. The
+disadvantage of this solution is that the user suffers. If there are any
+bookmarks or other documentation that links to an item by its ID that link will
+be broken. Consider the case of FogBugz, if someone entered a comment saying
+"see case #32" that comment would become invalid. So the "nice" way to perform
+this upgrade would also require finding all of these comments and fixing them.</p>
+<p>Re-numbering is simple, if you aren't nice, but could be very complex if you try to
+be nice. There is a second solution that provides some insight into how we
+could design these ids better. Suppose that when you combine two databases you
+simple copy the data as is, perhaps providing a new <em>Implementation Identifier</em>
+to make the items unique in the database. Now, instead of
+trying to use the ID alone, you update your code to use a second, or possible
+more, part of the data to identify the right item. For example, you might use
+the logged in user as a key to help find the correct item in the database. If
+Joe looks for item 1 you know Joe is part of Project A so you find item 1 from
+Project A.</p>
+<p>This idea works if you are combining databases but not combining the items
+visible to Joe. If you are combining items visible to Joe, you are stuck with
+the problem that he will see two items labelled 1.</p>
+<p>Can we keep two items labelled 1 and allow Joe to find them both easily?</p>
+<p>The answer is maybe. If the GUI or API that provides access to items was
+designed with a bit more information then you might be able to combine two
+databases and still provide unique access. Suppose that your product uses URIs
+of the form:</p>
+<pre class="codehilite"><code>http://host:port/projectName/items/itemNumber</code></pre>
+
+
+<p>Now there are really two unique items in the URI, the project name and the item
+number. It doesn't matter if you store the data in a single database or
+multiple databases these URIs can be resolved to the correct items.</p>
+<p>But, you are back to the situation my wife is in. If someone says "can you
+check part #2", that isn't suffecient information to find the part. They have
+to say "can you check part #2 in project B". If the person talking you doesn't
+know that, then you can't find the part.</p>
+<h4>Future Proofing</h4>
+<p>So how can you future proof your user-visible
+IDs?</p>
+<p>One possible lesson from the previous discussion is to build IDs from
+multiple pieces of information. Perhaps the simplest way to think of this is to
+build ids of the form:</p>
+<pre class="codehilite"><code>projectName-itemNumber</code></pre>
+
+
+<p>So you might have an item A-1 and an item B-1. If you combine the two projects,
+you would perhaps create new IDs of the form C-1 where, C is the new project
+name. Or if you reuse one of the project names, you would have A-1 - A-100 and
+B-1 - B-50, and all the new IDs would have the form A-x, where x starts at
+101.</p>
+<p>Multi-part IDs work, but they have a different problem. To really work well,
+and future proof against the combining problem, the project names have to be
+unique. So now you have the problem that two customers can't have a project A.</p>
+<p>There is another way to craft this solution. If you have access to a shared
+database that cuts across all of the projects, you can assign unique project
+IDs to projects, and use them in the user visible item IDs:</p>
+<pre class="codehilite"><code>projectNumber-itemNumber</code></pre>
+
+
+<p>Now you can be sure the project number's are unique, and the item numbers are
+unique per-project, so combining two project databases can allow you to keep
+ the visible IDs the same. Then again, if you have a shared database you could
+ just assign unique ids to everything across the entire world.</p>
+<p>Well, you can keep the visible ids the same if you combine the projects into a single databse,, but you may have to do some database
+shenanigans. The weakness to this design is that you made the project numbers
+visible. So now if you combine two projects, you can't assign the same project
+ID to all of the items, because there are different visible project IDs.</p>
+<p>Ultimately, the problem is the relationship between the database and the user.
+If the user sees data that is used as a primary key in the database, or even
+a key for joins, then you start to run into problems when that user's data is
+combined with another user's data that might have different visible keys.</p>
+<p>This got me thinking about a couple of ideas. Perhaps the least user-friendly
+is to assign every item with a public globally unique id or <a href="http://en.wikipedia.org/wiki/Globally_unique_identifier">GUID</a>. These are long, but you could be pretty sure that you would avoid conflicts if you had to combine two databases.</p>
+<p>The idea of a GUID led me to another idea. What if you encode your ids? GUIDs
+are generally encoded as Base64 or some as hexadecimal. What if we make
+a shorter id and encode it. For example, we could take a single byte, or even
+a character, for a flag
+to tell us the id format followed by a set of bytes for something like the
+project id and then a simple incrementing part number. This could lead to
+something like:</p>
+<pre class="codehilite"><code>flag - database id - part number</code></pre>
+
+
+<p>or specifically:</p>
+<pre class="codehilite"><code>0 - 23 - 461</code></pre>
+
+
+<p>which could then be encoded into hexadecimal or base64 with some padding to
+ensure that the boundaries work out. This only leaves the question of what to
+use for the database id. For a commercial product, that could be a customer
+number or similar. It could possibly be some combination of a time and a random
+number. This had a small chance of collisions, but it would be extremely rare.</p>
+<p>What I like about this encoding idea is that it would let you make the ids
+small or large, depending on what you think the user will be ok with. It can
+use flags to indicate different contents. So a flag of 0 might mean "customer
+id" while a flag of 1 might mean "time" to follow. Finally, this format hides
+the real data from the user. They won't see the 461, so even thought that is
+our unique id, they see an encoded format of it. Thus allowing us to remap that
+id if we have to later.</p>
+<h3>Some Other Thoughts</h3>
+<p>About fifeteen years ago, when 32-bit was the standard of the day, I went to
+a seminar about a new object oriented database. One of the things the vendors
+mentioned was that each object in a database had a unique identifier. These
+were all 32-bit ints, which put a limit of around four billion objects in
+a database. I asked "what if you have more objects?". There response was a very
+salesy "if you have that much data we want to talk to you."</p>
+<p>But I am not a sales person, so that was a BS response to me. I mean,
+realistically I won't have more data than that for most things, but I might. So
+I wanted to at least know that they had thought about the problem. Maybe they
+had. But their response said sorry dude you're on your own.</p>
+<p>This brings me to today. Today, I think ids should be either self encoding
+integer types, which means that they can be any length but use a bit of their
+space to say how long they are, or longs. A long can encode a gazillion values.
+Most of the time you won't need a gazillion, but sometimes you will. And the
+pain of crossing that boundary is not one that you want to experience.</p>
+<h3>Conclusions</h3>
+<p>So those are some thoughts on identifiers. I have used my encoding id a bit,
+but not extensivily. I am looking forward to a time when I can use it. If you have some other ideas for how to deal with IDs, and more especially combining IDs, please leave them in the comments.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-11-13)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/architecture/" class="tag">
+                architecture
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

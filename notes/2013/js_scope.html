@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Experiments in JavaScript Closures</h2>
+
+    <div>
+        <p>I have been trying to improve the object-oriented nature of my JavaScript lately. Part of that process is getting a handle on closures and public/private data. The following are a few experiments to help me process these concepts, I am posting them in case they help someone else as well.</p>
+<p>All of the experiments use a similar structure where I define a function that returns another function. The argument to the "creator" function is printed in the "created" function and should remain the same. </p>
+<h4>Experiment - 0</h4>
+<p>The first experiment is to show what I don't want to happen.  </p>
+<pre class="runnable prettyprint lang-javascript linenums">
+var index = 0;
+
+function builder(x){
+    index = x;
+    return function(){
+        log(index);
+    }
+}
+
+var two = builder(2);
+var one = builder(1);
+var zero = builder(0);
+
+zero();
+one();
+two();
+</pre>
+
+<p>This code prints the same value <code>0</code> for every call because the <code>index</code> variable is the same for all functions.</p>
+<h4>Experiment - 1</h4>
+<p>We can see how this changes if we move the variable inside the first function declaration. Moving the variable does two things. First it scopes it to the <code>builder</code> function. We can see this scoping by trying to print x outside of builder, as shown below.</p>
+<pre class="runnable prettyprint lang-javascript linenums">
+function builder(index){
+    var x = index;
+    return function(){
+        log(x);
+    }
+}
+
+log(x);
+</pre>
+
+<p>This code throws an exception because <code>x</code> isn't defined.</p>
+<p>However, inside of <code>builder</code>, <code>x</code> is defined and it is included in the closure for the function that builder returns. That means it remembers its value.</p>
+<pre class="runnable prettyprint lang-javascript linenums">
+function builder(index){
+    var x = index;
+    return function(){
+        log(x);
+    }
+}
+
+var two = builder(2);
+var one = builder(1);
+var zero = builder(0);
+
+zero();
+one();
+two();
+</pre>
+
+<p>I create the functions in the opposite order that I call them in, just to be sure that I am not just getting lucky.</p>
+<h4>Experiment - 2</h4>
+<p>So the inner function remembers the value of a variable from the parent scope, what about the argument to the parent function.</p>
+<pre class="runnable prettyprint lang-javascript linenums">
+function builder(index){
+    return function(){
+        log(index);
+    }
+}
+
+var two = builder(2);
+var one = builder(1);
+var zero = builder(0);
+
+zero();
+one();
+two();
+</pre>
+
+<p>As we would expect, the arguments are remembered in the same way that the variable is.</p>
+<h4>Experiment - 3</h4>
+<p>The last experiment uses a constructor. This one is fairly straight forward and did exactly what I expected. Values assigned to <code>this</code> are remembered on the object, <em>whew</em>.</p>
+<pre class="runnable prettyprint lang-javascript linenums">
+function Builder(index){
+
+    this.value = index;
+    this.printValue = function(){
+        log(this.value);
+    };
+}
+
+var two = new Builder(2);
+var one = new Builder(1);
+var zero = new Builder(0);
+
+zero.printValue();
+one.printValue();
+two.printValue();
+</pre>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-2-20)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/javascript/" class="tag">
+                javascript
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

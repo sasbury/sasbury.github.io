@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Sting</h2>
+
+    <div>
+        <p>The first version of <a href="/projects/genetik.html">Genetik</a> was designed for genetic programming as well as genetic algorithms. Genetic programming evolves programs rather than simple data. Rather than trying to manipulate a syntax tree, i thought it would be interesting to manipulate a stack-based language. This lead to the creation of Sting.</p>
+<p>Sting is an interpreted stack-based programming language with an intermediate format designed for use
+in genetic programming. Sting is based on languages like Forth, Postscript and Push. Sting programs consist of a serious of operations that manipulate the data stack or one of the built in data dictionaries. Internally, the Sting interpreter uses two stacks. The data stack which is manipulated by the operations and the execution stack
+which is manipulated by the interpreter to execute a program.</p>
+<p>All operations that cannot complete do to an inappropriate stack are treated as a no-op. All operations that access indexed memory will be floor'ed and modulo'ed to fit the available choices.</p>
+<p>Before execution a program is compiled or created as an array of integers. Each integer encodes two pieces of information, an operation index and a depth. The operation indexes are created during compile time by assigning a unique index for each operation in the program. Terminals - or constants - are implemented as a simple push operation, so they two are indexed in this way.</p>
+<p>Procedures are compiled in-line but have a depth setting 1 greater than the level they are defined in. So,</p>
+<pre class="codehilite"><code>1 1 add
+{
+    1 1 minus
+}
+1 1 times</code></pre>
+
+
+<p>the second line is compiled to 3 operations, two that push the value of 1 onto the stack and one that subtracts. These all have a depth of 1. The other operations, 6 of them, have a depth of 0.</p>
+<p>This intermediate format is designed to make it easy to perform genetic programming on a Sting program.</p>
+<p>When asked to interpret a compiled program, the interpreter pushes the array of integers onto the execution stack. Then the interpreter begins taking a single element from the stack and executing it. The interpreter performs this operation at a specied depth, 0 for the main program. When integers at a "deeper" depth are encountered, they are collecting into an array, converted to a Procedure object and pushed on the data stack. When a procedure is executed, the interpreter is set to its depth so procedures can contain other procedures.</p>
+<h2>Syntax</h2>
+<p>Sting uses white space to separate operations and values, but does not care about the white space specifically.
+For example "a b" is equivalent to "a       b".</p>
+<p>Procedures in Sting are distinguished by { and } as in Postscript and other languages. Arrays are indicated by [ and ].</p>
+<h2>Data Types</h2>
+<p>Sting provides the following built in data types:</p>
+<ul>
+<li>Number - a single precision floating point number</li>
+<li>String - a string of characters</li>
+<li>Array - an array of arrays, strings or floating point numbers, to be used as a vector or matrix</li>
+<li>Procedure - a collection of statements used in a loop or conditional</li>
+<li>IndexedMemory - number slots that can contain the other data types</li>
+</ul>
+<p><em>String and array are not fully implemented yet</em></p>
+<h2>Indexed Memory</h2>
+<p>Sting provides the following built in IndexMemory instances:</p>
+<ul>
+<li>Input -  the input into a program</li>
+<li>Output - the intended output from a program</li>
+<li>Working - working data used by the program</li>
+</ul>
+<h2>Operations</h2>
+<p>Sting provides the following extensible set of operations:</p>
+<ul>
+<li>dup - duplicate the top item on the stack</li>
+<li>swap - swap the top two items on the stack</li>
+<li>pop - pop the top item off the stack</li>
+<li>roll - (... n i roll) - rolls the previous n items on the stack i times, so (a b c 3 1 roll) -&gt; (c a b)</li>
+<li>copy - (... n copy) - copies the last N items on the stack, (a b c 2 copy) -&gt; (a b c b c)</li>
+<li>mark - creates a mark for the current stack size</li>
+<li>cleartomark - clears the stack up to the last mark</li>
+<li>plus - (a b plus) - adds two numbers, a+b</li>
+<li>minus - (a b minus) - subtracts two numbers, a-b</li>
+<li>times - (a b times) - multiplies two numbers, a*b</li>
+<li>divide - (a b divide) - divides two numbers, a/b</li>
+<li>modulo - (a b modulo) - takes the modulo of two numbers, a % b</li>
+<li>floor - (a floor) - takes one number and finds the closest integer smaller than it</li>
+<li>ceil - (a ceil) - takes one number and finds the closest integer bigger than it</li>
+<li>abs - (a abs) - takes the absolute value of a number</li>
+<li>neg - (a neg) - pops a number and pushes the negative of it</li>
+<li>and - (a b and) - takes two numbers and returns 1 if they are both &gt;0 and -1 if not (optimized)</li>
+<li>or - (a b or) - takes two numbers and returns 1 if they either or both are &gt;0 and -1 if not</li>
+<li>xor - (a b xor) - takes two numbers and returns 1 if they either but not both is &gt;0 and -1 if not</li>
+<li>not - (a not) - takes one number and returns 1 if it is &lt;=0 and -1 if not</li>
+<li>input - puts the input indexed memory on the stack</li>
+<li>output - puts the output indexed memory on the stack</li>
+<li>working - puts the working indexed memory on the stack</li>
+<li>read - (i mem read) - reads the i'th element in indexed memory or array instance mem and puts it on the stack</li>
+<li>write - (b i mem read) - buts b in the i'th slot in an indexed memory or array</li>
+<li>add - (b mem read) - adds b to the a new slot at the end of memory or array</li>
+<li>clear - (i mem clear) - clear the i'th slot in memory or an array</li>
+<li>size - (mem size) - pushes the number of slots in mem onto the stack</li>
+<li>lock - (mem lock) - locks mem- fixing the size</li>
+<li>unlock - (mem unlock) - unlocks mem</li>
+<li>null - (null) - places a null value on the stack, generally for adding to indexed memory</li>
+<li>ifeq - (a proc1 proc2 ifeq) - if a is equal to zero then proc1 is executed, otherwise proc2 is executed</li>
+<li>ifgt - (a proc1 proc2 ifgt) - if a is greater than zero then proc1 is executed, otherwise proc2 is executed</li>
+<li>loop - (a b proc loop) - loops over an index starting at a and ending at b (inclusive), executing proc for each loop</li>
+<li>forall - (array proc forall) - loops over array pushing each element in turn onto the stack and executing proc, if proc is a noop, elements accumulate on the stack, for index memory the key and value are pushed onto the stack&lt;\li&gt;</li>
+<li>index - push the current index for a loop on the stack, pushes 0 if not in a loop</li>
+<li>noop - places a noop procedure on the stack</li>
+<li>exec - (proc exec) - executes a procedure</li>
+</ul>
+<p><a href="https://github.com/sasbury/sting">GitHub Repository</a></p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (archive)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/genetic%20algorithms/" class="tag">
+                genetic algorithms
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

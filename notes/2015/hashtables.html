@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>HashTables for Fun</h2>
+
+    <div>
+        <p>My buddy and co-worker Blake Caldwell posted a fun little note on <a href="http://blakecaldwell.net/blog/2015/1/27/just-for-fun-hash-table-implementation-in-c.html">Hashtables</a> today. It got me thinking about the simple hash table implementation  I have been using for <em>cough cough</em> years. So I thought I would put it up on <a href="https://github.com/sasbury/hashtables">github</a> and write a bit about it.</p>
+<blockquote>
+<p>First, let me introduce a few motivations. At the time I wrote the Objective-C version, there wasn't one in the standard library. The Java map is targetted at storing doubles as keys and values, something that avoids boxing. Again, this was written early on, before auto-boxing in Java. The Go implementation is really a Set, which is basically a hash table with booleans as the value. I wrote this to compare performance to the Go map, and found it not to be faster in simple tests, and thus it became a dead experiment.</p>
+</blockquote>
+<p>I started using this implementation in Objective-C on a NeXT. I think the original ideas came from <a href="http://www.amazon.com/Practical-Algorithms-Programmers-Andrew-Binstock/dp/020163208X/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1372894428&amp;sr=1-1&amp;keywords=practical+algorithms">Practical Algorithsm for Programmers</a>. The concept is this, a hashtable is an array of arrays, plus a capacity, or size, and a counter of how many elements are in the table. Each element in the main array holds an array of key-value pairs in a simple linked list struct.</p>
+<p>In old Objective-C this looked like:</p>
+<pre class="codehilite"><code>@interface Dictionary:Object
+{
+    struct listnode **hashtable;
+    int size;
+    int used;
+}
+
+struct listnode{
+    struct listnode *next;
+    id key;
+    id value;
+};</code></pre>
+
+
+<p>In Java:</p>
+<pre class="codehilite"><code>public class DoubleDoubleMap
+{
+    protected DoubleDoubleNode[] hashtable;
+    protected int size;
+    protected int used;
+    ...
+
+class DoubleDoubleNode
+{
+    DoubleDoubleNode next;
+    double key;
+    double value;
+}</code></pre>
+
+
+<p>Or in Go (note, we don't need a value for a set, only the key):</p>
+<pre class="codehilite"><code>type TagSet struct {
+    nodes []*tagSetNode
+    size  int32
+    used  int32
+}
+
+
+type tagSetNode struct {
+    next *tagSetNode
+    key  string
+}</code></pre>
+
+
+<p>Collisions, where two keys have the same hash value, are handled using these linked lists. To look up an item, you:</p>
+<ul>
+<li>Calculate the hash</li>
+<li>Modulo the hash by the size of the table</li>
+<li>Go to that index</li>
+<li>Start walking the linked list looking for a node with that key using some sort of equality</li>
+</ul>
+<p>For example, in Objective-C:</p>
+<pre class="codehilite"><code>- objectForKey: (String*)aKey
+{
+    id returnValue = nil;
+
+    if((aKey != nil)&amp;&amp;(used &gt; 0))
+    {
+        unsigned long index;
+        struct listnode *node = NULL;
+
+        index = [aKey hash] % (size -1);
+        node = hashtable[index];
+
+        if(node != NULL)
+        {
+            do
+            {      
+                if((node-&gt;key != nil) &amp;&amp;([aKey isEqual:node-&gt;key] == YES))
+                {
+                    returnValue = node-&gt;value;
+                }
+                else
+                {
+                    node = node-&gt;next;
+                }
+
+            } while((returnValue == nil)&amp;&amp;(node != NULL));
+        }
+    }
+    return returnValue;
+}</code></pre>
+
+
+<p>or Java:</p>
+<pre class="codehilite"><code>public double get(double c)
+{
+    double returnValue = Double.NaN;
+
+    if(used &gt; 0)
+    {
+        int index;
+        DoubleDoubleNode node = null;
+
+        index = ((int)c) % (size - 1);
+        node = hashtable[index];
+
+        if(node != null)
+        {
+            do
+            {
+                if(c == node.key)
+                {
+                    returnValue = node.value;
+                    break;
+                }
+                else
+                {
+                    node = node.next;
+                }
+
+            } while(node != null);
+        }
+    }
+    return returnValue;
+}</code></pre>
+
+
+<p>or Go:</p>
+<pre class="codehilite"><code>func (set *TagSet) Contains(key string) bool {
+    if set.used &gt; 0 {
+        index := set.hash(key) % uint32(set.size)
+
+        for node := set.nodes[index]; node != nil; node = node.next {
+            if key == node.key {
+                return true
+            }
+        }
+    }
+
+    return false
+}</code></pre>
+
+
+<p>Adding items to the hashtable is more complicated. For performance reasons we want to grow the main array if there are enough items in the table. This attempts to insure that the table is sparse, with short linked lists. If the linked lists get too long the hashtable looses its main performance beneifit which is near constant time regardless of size. An easy example of this is the degenerate case of a hashtable with a main array of length 1. If you put 100 items into that hashtable they are all in a linked list. Which means that finding an item is O(n), the worst case. But if we keep the main array large compared to the number of elements in the table we can hope that they aren't all stacked at one index, and they shouldn't be unless the hash function is terrible.</p>
+<p>So, in Java, my add method looks like this:</p>
+<pre class="codehilite"><code>public double put(double c, double val)
+{
+    int index;
+    DoubleDoubleNode node = null;
+    double valueToReturn = Double.NaN;
+    boolean gotIt = false;
+
+    index = ((int)c) % (size - 1);
+    node = hashtable[index];
+
+    if(node != null)
+    {
+        do
+        {
+            if(node.key == c)
+            {
+                valueToReturn = node.value;//cache the old one and
+                node.value = val;//replace it
+                gotIt = true;
+                break;
+            }
+            else
+            {
+                node = node.next;
+            }
+
+        } while(node != null);
+    }
+
+    if(!gotIt)
+    {
+
+        node = new DoubleDoubleNode();
+
+        node.key = c;
+        node.value = val;
+        node.next = hashtable[index];
+
+        hashtable[index] = node;
+
+        used++;
+
+        //check if we need to grow
+        if(used &gt;= (GROW_PERCENTAGE * size))
+        {
+            DoubleDoubleNode[] newTable;
+            int newS = GROWTH_RATE * size, newUsed = 0;
+            DoubleDoubleIterator iterator = new DoubleDoubleIterator(hashtable, size);
+            DoubleDoubleNode newNode = null;
+            DoubleDoubleNode nextNode = null;
+            int curIndex, i;
+
+            newS = NumberUtils.ceilPrime(newS);
+
+            newTable = new DoubleDoubleNode[newS];
+
+            while(iterator.nextState())
+            {
+                curIndex = ((int)iterator.key()) % (newS - 1);
+
+                newNode = new DoubleDoubleNode();
+
+                newNode.key = iterator.key();
+                newNode.value = iterator.value();
+                newNode.next = newTable[curIndex];
+                newTable[curIndex] = newNode;
+
+                newUsed++;
+            }
+
+            for(i = 0; i &lt; size; i++)
+            {
+                newNode = hashtable[i];
+
+                while(newNode != null)
+                {
+
+                    nextNode = newNode.next;
+                    newNode = nextNode;
+
+                }
+
+                hashtable[i] = null;
+            }
+
+            hashtable = newTable;
+            size = newS;
+            used = newUsed;
+        }
+    }
+    return valueToReturn;
+}</code></pre>
+
+
+<p>Note the use of <code>NumberUtils.ceilPrime</code>. This is my simple way of trying to use prime number sized tables. The Java version of this class is available on <a href="https://github.com/sasbury/numberutils_java">github</a>. By using primes, I am trying to improve my chances of getting fewer collisions when I modulo the hash by the size of the main array.</p>
+<p>Of course there are some other useful methods on hashtables, you can see my full implmentation for each of these on <a href="[github](https://github.com/sasbury/hashtables)">github</a>.</p>
+<p>One of the issues with the Go implementation is that there wasn't a standard hash function for strings, so I used the Java string hash function:</p>
+<pre class="codehilite"><code>func (set *TagSet) hash(key string) uint32 {
+    var val uint32 = 1
+    var l = len(key)
+
+    for i := 0; i &lt; l; i = i + 1 {
+        val += (val * 37) + uint32(key[i])
+    }
+    return val
+}</code></pre>
+
+
+<p>And Blake, it was fun to look back on some of this old code, even if it did make me feel old.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2015-1-27)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/algorithms/" class="tag">
+                algorithms
+            </a>
+        
+            <a href="/tag/programming/" class="tag">
+                programming
+            </a>
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/go/" class="tag">
+                go
+            </a>
+        
+            <a href="/tag/objective-c/" class="tag">
+                objective-c
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Monte Carlo</h2>
+
+    <div>
+        <p>Chapter 4 of the <a href="http://www.amazon.com/The-New-Turing-Omnibus-Excursions/dp/0805071660/ref=sr_1_1?ie=UTF8&amp;qid=1379227526&amp;sr=8-1&amp;keywords=turing+omnibus">The New Turing Omnibus</a> is about the Monte Carlo method. I spent a fair bit of time learning about Monte Carlo methods for my PhD and have had to explain it to a few people as a result. When I read this chapter, I thought back to my favorite example, and thought I would reproduce it here.</p>
+<p>One way to think about Monte Carlo is that it is a way to use simulations to
+approximate mathematical functions. They are a way to use 
+random numbers to determine information about one or more functions that might
+be hard to calculate some other way.</p>
+<p>So I like to start telling someone about Monte Carlo with
+a really simple example. George Fishman discusses
+this example in depth in his book <a href="http://www.amazon.com/A-First-Course-Monte-Carlo/dp/053442046X">A First Course in Monte Carlo</a>, including a way to optimize the calculation. But I am going to stick to the super simple version.</p>
+<blockquote>
+<p>Keep in mind that this is a simple, non-exact explanation of Monte Carlo.</p>
+</blockquote>
+<p>Suppose that you want to calculate the value \( \pi \). We can use the function for
+the area of a circle which is</p>
+<p>$$areaOfCircle(radius) = \pi \times radius^2$$</p>
+<p>or if we move things around</p>
+<p>$$ \pi = \frac{areaOfCircle(radius)}{radius^2} $$</p>
+<p>So if we had a circle and could figure out its radius and area we could calculate \( \pi \). But how can we know the area of a circle. This is where the idea behind Monte Carlo comes in. Consider a square with a circle drawn inside it. The area of the square will be \( side ^ 2 \). The radius of the circle will be \( \frac{side}{2} \). So if we have the side of the square, we also know the area of the square and the radius of the circle. We don't know the area of the circle, but we can use a simulation to calculate it.</p>
+<p>Start picking random numbers that are between 0 and the length of a side of the square. Take two of these numbers and treat them as a point in the square. Now, determine if the point is in the circle. We can do this by using the formula of a circle:</p>
+<p>$$ x^2 + y^2 = radius^2 $$</p>
+<p>So if we take the square of each point, add them and check if they are less than the square of the radius, the point is in the circle.</p>
+<p>If we think about this as a probability, then the chance of a random point in the square being in the circle is the same as the ratio of the area of a square to the area of a circle. This means that:</p>
+<p>$$ \frac{points\ we\ pick}{points\ that\ hit\ the\ circle} = \frac{area\ of\ the\ square}{area\ of\ the\ circle} $$</p>
+<p>So our simulation is to pick random points and figure out if they are in the circle, then use the number of random points and whether they hit the circle to determine the area of the circle. Putting this idea together with the forumula for the area of a circle, we can now calculate \( \pi \) by taking:</p>
+<p>$$ \pi = \frac{points\ that\ hit\ the\ circle}{points\ that\ we\ pick} \times \frac{side ^ 2}{ (\frac{side}{2}) ^ 2 } $$</p>
+<pre class="shared hidden prettyprint lang-javascript linenums">
+function guess_pi(count)
+{
+    var radius = 50;
+    var side = 2 * radius;
+    var square = side * side;
+    var circle = radius * radius;
+    var hits = 0;
+
+    drawing.fillStyle = "#FF9999";
+
+    for(var i=0;i < count;i++)
+    {
+        var x = Math.random() * radius;
+        var y = Math.random() * radius;
+
+        if(Math.random() < 0.5) x = -x;
+        if(Math.random() < 0.5) y = -y;
+
+        var hit = (((x * x) + (y * y)) <= (radius * radius));
+
+        drawing.fillRect(50 + x, 50 + y,2,2);
+
+        if(hit)
+        {
+            hits = hits+1;
+        }
+    }
+
+    drawing.strokeStyle = "#00FF00";
+    drawing.beginPath();
+    drawing.arc(radius, radius, radius, 0, 2 * Math.PI);
+    drawing.stroke();
+
+    var guess = (square / circle) * (hits / count);
+
+    log("PI ~= " + guess);
+}
+</pre>
+
+<p>First, remember that \( \pi \) starts out as \( 3.14159 \).</p>
+<p>Let's try it with 10, 100, 1000, 10,000 and 100,000 guesses. These are
+calculated in real time when you load the page, so if you refresh the page you
+will get different values. You can view source on the page to see the actual
+code if you are interested.</p>
+<pre class="drawable loggable prettyprint lang-javascript" data-canvas-width="100" data-canvas-height="100">
+guess_pi(10);
+</pre>
+
+<pre class="drawable loggable prettyprint lang-javascript" data-canvas-width="100" data-canvas-height="100">
+guess_pi(100);
+</pre>
+
+<pre class="drawable loggable prettyprint lang-javascript" data-canvas-width="100" data-canvas-height="100">
+guess_pi(1000);
+</pre>
+
+<pre class="drawable loggable prettyprint lang-javascript" data-canvas-width="100" data-canvas-height="100">
+guess_pi(10000);
+</pre>
+
+<pre class="drawable loggable prettyprint lang-javascript" data-canvas-width="100" data-canvas-height="100">
+guess_pi(100000);
+</pre>
+
+<p>What you should see is that as you try more guesses you get closer the the
+right value of \( \pi \). But you won't necessarily see the numbers
+increasing monotonically. This is one of the important lessions in learning
+about Monte Carlo. You usually have to run a lot of simulations, which can take
+a long time. How many you have to run to get a required accuracy is generally calculatable, but that is
+beyond the scope of this post.</p>
+<p>I do want to mention one of the real gotcha's with Monte Carlo. In my PhD we
+used Monte Carlo simulations to model neutrons moving through different
+materials. Neutrons have a chance to scatter off of each atom in the material,
+but the chance of scattering and potential angle is dependent on the material.
+If you have an alloy or compound, with several materials, you have to model
+which element you hit on top of how the neutron reacts. Now, suppose that you
+had a material that was 99.9% pure. So approximately 1 in a 1000 collisions will be with
+an impurity. If you want to do an accurate simulation, you need to include
+enough impurity collisions to get a reasonable answer. But since you dont' get
+these often, you have to run many many more simulations than you would for
+a pure material. I am simplifying here, but I wanted to be clear that the
+number of simulations can be complex, and there is opportunity for
+optimizations.</p>
+<p>So that is Monte Carlo. Using simulations to model a function that may not even
+be solvable, but can at least be evaluated in some way.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-9-28)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/omnibus/" class="tag">
+                omnibus
+            </a>
+        
+            <a href="/tag/javascript/" class="tag">
+                javascript
+            </a>
+        
+            <a href="/tag/programming/" class="tag">
+                programming
+            </a>
+        
+            <a href="/tag/algorithms/" class="tag">
+                algorithms
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

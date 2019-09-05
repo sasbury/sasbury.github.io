@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/portfolio/">Back to &#34;about me&#34;</a>
+    </div>
+
+    <h2>Developing Java Enterprise Applications</h2>
+
+    <div>
+        <p>In 1999 I co-authored the Wiley and Son's book entitled <a href="http://www.amazon.com/Developing-Java-Enterprise-Applications-2nd/dp/0471405930/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1358485847&amp;sr=1-1&amp;keywords=Developing+Java+Enterprise+Applications">Developing Java Enterprise Applications</a>. Two years later, in 2001, I was lead author on the second edition.</p>
+<p><img alt="" src="/static/img/covers/j2ee.jpg" /></p>
+<p>Developing Java Enterprise Applications introduces the Java enterprise
+libraries. Servlets, JNDI, JavaServer Pages, Enterprise JavaBeans, the Java
+Messaging Service, JavaMail, XML, XSLT, RMI and transactions are all included. Each library is discussed and demonstrated with small examples. Medium size examples
+are used to tie these discussions together and two large examples
+combine multiple technologies.</p>
+<p>The first edition of this book included a sample JMS implementation based on RMI and JNDI. The second replaced this example with a Message Hospital implementation that demonstrated how a rules engine can be used to fix bad messages on the network.</p>
+<p>The second edition added an interesting discussion of the eight fallacies of network computing, included below minus the diagrams.</p>
+<blockquote>
+<p>This was written over ten years ago, and technology and standard practices have changed in many ways.</p>
+</blockquote>
+<h2>The Eight Fallacies of Distributed Computing</h2>
+<p>At Java One 2000, James Gosling mentioned the eight fallacies of distributed computing. Although not widely known, these fallacies do a great job of summarizing the dangers that developers of distributed applications face. Keep in mind that these statements are worded as fact, but are really fallacies.</p>
+<h3>Fallacy 1: The Network Is Reliable</h3>
+<p>One of the easiest assumptions to make in distributed computing is to assume that the network will always be there. This simply isn’t true. Networks are becoming increasingly reliable, but they cannot be 100  percent. There is always the possibility of a power failure or squirrel chewing through a wire. You can’t expect the network to be 100-percent reliable.</p>
+<p>Some of the things you can do to plan for network failures include:</p>
+<ul>
+<li>
+<p>Use transactions to ensure that operations occur atomically. If a network failure occurs in the middle of a transaction, it will fail, and you can retry the entire transaction. On the other hand, if you don’t use transactions and a series of operations fails, you don’t necessarily know where to start over.</p>
+</li>
+<li>
+<p>Use messaging, via JMS, to ensure once and only once delivery of business-level events. Messaging servers are designed to withstand network failures. They should tell you if a message can’t be sent, and store messages until the receiver actually gets them. By leveraging a messaging server, you don’t have to implement this logic yourself.</p>
+</li>
+<li>
+<p>When using RMI and CORBA, plan for the RemoteExceptions. Don’t just ignore them and treat the code as a local method call.</p>
+</li>
+<li>
+<p>Think about the effect of network failure at each node. For example, a JMS server might have time or size limits on the number of messages it will hold in a Queue or Topic. If the clients are unable to reach the server before the size/time limit is reached, then messages may be lost. In this case, the server itself is being affected by the network's reliability. We have seen this issue in a number of applications, and it should not be ignored. It is, however, an example of a complex problem that probably requires experienced architects to think about, find, and solve.</p>
+</li>
+<li>
+<p>Build redundant networks. Many companies that depend on their network to do business, such as an Internet service provider (ISP), have multiple networks running. Or at least they have redundant hardware, like routers, to ensure that one hardware failure doesn’t bring down the network. In the case of ISPs, some have multiple Internet connections. Really good ones run the cables for these connections via different paths so that an accident that cuts through one cable doesn’t get the other one. This type of planning can go a long way toward reducing the risk of network failure.</p>
+</li>
+</ul>
+<p>Of course there are more things to do, but these are some of the main ones.</p>
+<h3>Fallacy 2: Latency Is Zero</h3>
+<p>Latency is the time it takes for messages to travel through the network. As most of us know, this value is not zero. Latency doesn’t so much affect the amount of data you can send, but the delay in between sending and receiving data. Latency can have some interesting effects on your applications:</p>
+<p>Messages can be reordered. Imagine a client sending three insert messages to a server. The client sends each message in order, but because one message may get tied up in the network, it may arrive after another message that was sent later. To solve this problem, use a messaging technology, like JMS, that can ensure sequencing. These technologies will reorder messages in a sequence to ensure that they arrive in order. Otherwise, you have to handle reordering in your code.</p>
+<p>Request-reply style communications can be much slower than asynchronous calls. Take, for example, a program that uses JDBC to talk to a database. The call to the database and the reply must travel over the network. The client has to wait for both network transfers to occur. On the other hand, an asynchronous communication, possibly via JMS, doesn’t even require the client to wait for the first leg of the trip. Of course, there is a caveat: if the client wants guaranteed messaging, then you still have to wait. However the messaging provider can optimize its code to minimize the wait. Also, when using Topics in JMS, the trip to the server is one network hop, while communicating with all of the receivers could require many hops.</p>
+<p>Timing is not guaranteed. Take the example where two clients are talking to one server. Even though client one might send a message first, client two’s message may arrive first. This isn’t just an issue of JMS style messaging; it is an issue with raw TCP/IP packets on the wire. You can’t be sure that client-side time will dictate the arrival of messages.</p>
+<p>Another interesting example is that you could have a situation in which client one sends a message to server one, and then server one forwards the message to server two. If client one also sends a message to server two, it is possible that the forwarded message arrives first. This might require a weird network state, but is not that unusual.</p>
+<p>In many ways, the effect of network latency is similar to the effect of using multiple threads. It is well worth studying books on multi-threaded programming to better understand the issues you may encounter in a distributed application.</p>
+<h3>Fallacy 3: Bandwidth Is Infinite</h3>
+<p>Despite increasing network speeds, there are still limits. These limits can become important in mission-critical applications. The problem with bandwidth is that it is very hard to figure out where it all goes. Network protocols have some overhead, as do messaging implementations such as JMS. Plus, there is background noise in an enterprise network caused by e-mail, Web browsing, and file sharing. There are a number of things you can do to deal with limited bandwidth, including:</p>
+<ul>
+<li>
+<p>Buy more bandwidth. We know this sounds obvious, but there are a number of network technologies that can provide very high levels of bandwidth. Another option is to have multiple networks. This would allow you to dedicate bandwidth to a single application. Currently, many companies use this technique to create networks for online data storage that are not cluttered by other traffic.</p>
+</li>
+<li>
+<p>Use multicast. IP multicast is available in the java.net package and allows you to send one message to many clients without repeating it. This protocol is not reliable by default, but can be used in many notification applications.</p>
+</li>
+<li>
+<p>Use JMS Topics. By creating a hub-and-spoke architecture around a centralized server, you can avoid some of the bandwidth problems that multicast solves while still having reliable communications.</p>
+</li>
+<li>
+<p>Use caching. Caching technology allows you to reduce total network traffic, especially in key areas. Caches can be created for a number of types of data, including Web page and database queries. By combining all of these, as needed, you can go a long way to creating an application that efficiently utilizes bandwidth.</p>
+</li>
+<li>
+<p>Don’t send unneeded data. It is easy to fall into the trap of sending everything you need for one part of a distributed solution even though it is not needed by all parts of a distributed solution. This concept gets us into a discussion on some basic design choices for a distributed application. When many parts of the application need to share data, you have to provide a way for them to get the information they need. There are three basic solutions to this problem.</p>
+<ul>
+<li>
+<p>The first is the big message solution. In this case, all data is sent to all receivers. Data is forwarded along the application flow, regardless of its value.</p>
+</li>
+<li>
+<p>The second design is to use a central data repository. In this case, data is inserted in a database of some sort, and all of the clients access the database as needed. This solution increases network traffic in one way, by adding messages, but reduces the data in each message.</p>
+</li>
+<li>
+<p>The final design uses a central server to route messages. This server, perhaps a set of EJBs, would send only the necessary data to each application, get the response, and move on to the next step of the application flow.</p>
+</li>
+</ul>
+<p>As you can imagine, each of these designs has its pros and cons. Primarily, you are trading the number of messages for the size of messages. This is an important part of designing an enterprise application and should not be overlooked.</p>
+</li>
+</ul>
+<h3>Fallacy 4: The Network Is Secure</h3>
+<p>Security can be a difficult problem both administratively and with performance. Security is also a topic that has numerous issues and potentially huge side effects. It is a difficult problem that ranges from authentication, authorization, and privacy to data protection. If you are interested in security, you might start your study with the book Secrets and Lies by Bruce Schneier (Wiley, 2000). Then, start working with experienced professionals. Keep in mind that security is not obtained by hiding algorithms and techniques; it is obtained by peer-reviewed solutions that don’t depend on hiding the implementation to attain their goals.</p>
+<h3>Fallacy 5: Topology Doesn't Change</h3>
+<p>Topology is the physical connectivity of the computers. Failing hardware, handhelds, and laptops can change topology. New wireless technologies allow people to access your network from anywhere in the world. This makes developing applications a complex business. You need to think about providing customized interfaces for each type of client. These interfaces should reduce or increase functionality as needed to deal with the limitations of the client’s bandwidth.</p>
+<p>Handhelds and laptops also have the topologically changing effect of being connected and disconnected from the network. To service applications on these moving clients, you need to support caching, store and forward messaging, and general network changes.</p>
+<h3>Fallacy 6: There Is One Administrator</h3>
+<p>Large companies have numerous system administrators. The same problem may be solved in different ways, and there are time and version differentials during software updates. Plan in administration and maintenance as much as possible during design time. For example, the Message Hospital in the next chapter allows a client to change its configuration dynamically. This type of interface can make it easier to administer a running solution.</p>
+<p>You might also think about providing interfaces for shutting down a system gracefully. For example, consider the situation in which data is being sent from one computer to another and then forwarded to a third. If you shut the machines down in the wrong order, you may lose data or create an odd situation. If, on the other hand, you create a tool or mechanism to tell them to shut down in order, you can provide graceful behavior in a distributed world.</p>
+<p>Administration has links into the security issue. Identifying administrators is an important task in a distributed world. Don’t take the possibility lightly that an administrator may want to do harm, or that a disgruntled employee can easily become an administrator.</p>
+<h3>Fallacy 7: Transport Cost Is Zero</h3>
+<p>In a world in which it costs money to move data, developers must be aware of the issues such as quality of service and speed versus price. Although most networks don’t have a price per bit sent, at least not yet, there is still a cost. Buying bigger hardware and backup networks is expensive. If a solution can be designed in a way that provides the same functionality at a reduced total cost, do it. Don’t rely on time as the only measure of a good choice; money must play a part as well. The business-savvy folks know this, but it is easy to get into a situation where you solve problems with money, not design. On the other hand, if you have the money and it will solve the problem quickly, go for it.</p>
+<h3>Fallacy 8: The Network Is Homogeneous</h3>
+<p>Networks are a collection of technologies. Distributed applications have to deal with an alphabet soup of standards, such as sockets, HTTP, CORBA, RMI, and others. Hopefully, this book will help you to determine how to best deal with the requirements placed on your applications. Keep in mind that this book is just a starting point. You will need to create solutions by combining technologies in innovative ways.</p>
+    </div>
+
+    <div>
+        
+
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/j2ee/" class="tag">
+                j2ee
+            </a>
+        
+            <a href="/tag/jms/" class="tag">
+                jms
+            </a>
+        
+            <a href="/tag/rmi/" class="tag">
+                rmi
+            </a>
+        
+            <a href="/tag/jdbc/" class="tag">
+                jdbc
+            </a>
+        
+            <a href="/tag/web/" class="tag">
+                web
+            </a>
+        
+            <a href="/tag/distributed%20computing/" class="tag">
+                distributed computing
+            </a>
+        
+            <a href="/tag/writing/" class="tag">
+                writing
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/portfolio/">Back to &#34;about me&#34;</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

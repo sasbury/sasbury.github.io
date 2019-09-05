@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Setting up My Raspberry Pi Cluster</h2>
+
+    <div>
+        <p>I posted earlier about <a href="/notes/2013/raspberry_pi_initial_setup.html">setting up my first Raspberry Pi</a>. This was a trial run for setting up a small cluster of five raspberry pis. To make life simple, I used the same steps to get berryboot and an OS on the other 4. This took a bit longer than some options, but with only 5 boxes wasn't too much work.</p>
+<p>Next I wanted to set host names for the cluster so that I could find them. My plan was to name the pis, rpi0 - rpi4. I found <a href="http://simonthepiman.com/how_to_rename_my_raspberry_pi.php">this useful tutorial</a>. To summarize the steps.</p>
+<ol>
+<li>
+<p>Edit the <code>/etc/hostname</code> file, replacing the default name <code>raspberry</code> with the new name <code>rpi0</code>.</p>
+<pre class="codehilite"><code>rpi0</code></pre>
+
+
+</li>
+<li>
+<p>Edit the <code>/etc/hosts</code> file, replacing the default name <code>raspberry</code> with the new name <code>rpi0</code>.</p>
+<pre class="codehilite"><code>127.0.0.1   localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0     ip6-localnet
+ff00::0     ip6-mcastprefix
+ff02::1     ip6-allnodes
+ff02::2     ip6-allrouters
+
+127.0.1.1   rpi0</code></pre>
+
+
+</li>
+<li>
+<p>Reboot.</p>
+<pre class="codehilite"><code>&gt; sudo reboot</code></pre>
+
+
+</li>
+</ol>
+<p>I followed these steps on my first box, and got the name to be <code>rpi0</code>. But I still wasn't able to connect from my laptop since I don't have a DNS server running on my LAN. After some Googling I found <a href="http://raspberrypi.org/phpBB3/viewtopic.php?f=66&amp;t=18207">this article</a> on setting up <a href="http://www.apple.com/support/bonjour/">bonjour</a>/<a href="http://www.zeroconf.org">zeroconf</a> on the pi. Basically this involved making sure the pi was up to date and installing a single package:</p>
+<pre class="codehilite"><code>&gt; sudo apt-get update
+&gt; sudo apt-get install libnss-mdns</code></pre>
+
+
+<p>Once that was installed, I could access my first pi using <code>rpi0.local</code>.</p>
+<pre class="codehilite"><code>&gt; ping rpi0.local
+PING rpi0.local (192.168.1.169): 56 data bytes
+64 bytes from 192.168.1.169: icmp_seq=0 ttl=64 time=54.703 ms
+64 bytes from 192.168.1.169: icmp_seq=1 ttl=64 time=64.260 ms</code></pre>
+
+
+<p>This also meant that I can ssh to the box using <code>ssh pi@rpi0.local</code>, which is really nice.</p>
+<p>Using this info for the other 4 pis, I got them booting, ssh'd and:</p>
+<pre class="codehilite"><code>&gt; sudo apt-get update
+&gt; sudo apt-get upgrade
+&gt; sudo apt-get install git-core vim python-dev python-setuptools libnss-mdns</code></pre>
+
+
+<p>Then setup the host names. A few minutes later the cluster is up and running as rpi0, rpi1, rpi2, rpi3 and rpi4.</p>
+<p>Hopefully in the next post I can do something more interesting ;-)</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2013-1-25)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/linux/" class="tag">
+                linux
+            </a>
+        
+            <a href="/tag/raspberry%20pi/" class="tag">
+                raspberry pi
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

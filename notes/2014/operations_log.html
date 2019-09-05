@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Creating an Operations Log</h2>
+
+    <div>
+        <p>As I mentioned in a previous post, I recently joined the Kiln team at Fog Creek. One of the effects of my move is that I have needed to learn how to help run Kiln both within Fog Creek and for our customers. Essentially I have been trying to learn how to be a good operator for Kiln. I have to admit that I am struggling with this transition. I have been pushing the team to create what I was calling an Operations Handbook. Some of this information is already captured, but I kept thinking we needed to organize it better.</p>
+<p>Today I had an epiphany.</p>
+<p>Creating an operations handbook is a lot of work, especially at a small company. Handbooks have to be maintained, edited and I want to say curated because that word has the gravitas of how much work a handbook can really be. What the handbook has, that I want, is a collection of information about things like:</p>
+<ul>
+<li>How to solve specific problems</li>
+<li>Known scripts and commands operations people use to do their job</li>
+<li>Architecture information about how the system works</li>
+<li>Administrative level information about machines, networks, addresses, memory, etc..</li>
+<li>Pointers to monitoring pages, tasks, scripts and logs</li>
+<li>Some place for new group members to go to learn about the product's operation</li>
+</ul>
+<p>The problem is that all of these things change over time. So making a handbook is not only a hard process at the start, it is an ongoing hard process that requires constant attention.</p>
+<p>My epiphany is that by changing my goal from a <em>handbook</em> to a <em>log</em> I can get everything I want without the same kind of maintenance requirements. My idea is simple, using blog software, the team can simply document operations issues and solutions. Each time a problem comes up, the person that investigates it can simply type up a post about what they did and what they found. As we build a set of posts, the log becomes a searchable resource for operations folks to use to find scripts, commands and ideas for solving problems.</p>
+<p>We can also start to capture log posts that are more than a simple "found a problem with X and fixed it by running Y." These longer posts, or articles, can capture architecture. Shorter posts by administrators can indicate new machines or changing machine resources.</p>
+<p>So why is the log better than the handbook?</p>
+<p>A log is a series of entries organized by time. A handbook is an organized collection of information. The handbook has to be updated over time. The log is just added to. Ultimately I think the log will be easier to create and keep up to date. I think the log will be easier for the entire team to contribute to in real time.</p>
+<p>Update 5/11/2014 - We have implemented an operations log for the Kiln team and I am looking forward to posting some updates on the Fog Creek Site soon.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2014-4-4)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/architecture/" class="tag">
+                architecture
+            </a>
+        
+            <a href="/tag/process/" class="tag">
+                process
+            </a>
+        
+            <a href="/tag/devops/" class="tag">
+                devops
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

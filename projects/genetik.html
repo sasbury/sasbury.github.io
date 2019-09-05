@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/portfolio/">Back to &#34;about me&#34;</a>
+    </div>
+
+    <h2>Genetik (Java Genetic Algorithms)</h2>
+
+    <div>
+        <p>Genetik is a set of Java libraries I wrote to explore optimization techniques for my dissertation at the University of Michigan. The primary goal of Genetik was to provide an extensible library for exploring optimization routines, especially GA, for nuclear engineering problems. Genetik is in some ways over-engineered for the problems discussed in this dissertation, but the flexibility provided by Genetik's design was fundamental in implementing MGGA and supporting batch GA on a cluster.</p>
+<p><a href="https://github.com/sasbury/genetik">GitHub Repository</a></p>
+<p>To allow for the greatest range of topics, Genetik was originally designed to support both genetic algorithms and genetic programming, where the chromosomes represent runnable computer programs. To make GP simple and consistent with GA I wrote a small stack-based language called Sting. Sting is interpreted, with an intermediate format designed for use in genetic programming. Sting is based on languages like Forth, Postscript and Push. All of the chromosomes for Genetik 1.0 were defined as Sting programs. Sting allows data constants, so for a chromosome containing binary data the Sting program might be something like <code>0 0 1 0</code>. However, this format can be confusing since it reverses constants due to Sting's nature as a stack language.</p>
+<p>In order to make Genetik more usable by others, I created an updated version, 2.0, that replaced the Sting syntax with a pluggable chromosome type. This simplified the process of reading chromosomes as text.</p>
+<p>The Genetik library contains a number of sub-packages that define major features. Some of these include:</p>
+<ul>
+<li>[crossover] Classes that define GA crossover operators, renamed to operations in 2.0</li>
+<li>[generator] Classes that define different ways to generate a population, including phase-based generation used for MGGA</li>
+<li>[insertion] Classes that define different ways to insert individuals into a population</li>
+<li>[driver] Utility classes for running Genetik, including on a cluster</li>
+<li>[optimize] Core optimization algorithm implementations</li>
+<li>[population] Classes that define population holders</li>
+<li>[precalc] Implementation of the pre-calculation routines (1.0 only)</li>
+<li>[reporting] Classes to help build reports from Genetik Runs</li>
+<li>[scaling] Classes that can be used to scale raw scores before the fitness is calculated</li>
+<li>[selection] Classes that define the various GA selection schemes</li>
+<li>[terminate] Classes that define termination conditions for runs</li>
+</ul>
+<p>Combined these packages represent numerous options for running GA or other optimization algorithms. The Genetik library includes optimizers that use GA, HillClimbing, Random Change, Particle Swarm and Simulated Annealing to find the best solution in a generational context. The crossover package includes single point and uniform crossover. Finally, Genetik supports random, rank, roulette, tournament, truncation and stochastic selection.</p>
+<h3>Running Genetik 1.0</h3>
+<p>Genetik 1.0 uses two XML configuration files to define what it will do. These files define the concept of a run group and the optimization to perform. For legacy reasons the run group file is generally called run.xml and the the optimization description is called evdesc.xml.</p>
+<p>The following XML describes the basic format for a run.xml file.</p>
+<pre class="codehilite"><code>&lt;genetik&gt;
+    &lt;run_desc&gt;
+        .. parameters for the run ..
+        .. an array of run definitions ..
+        &lt;run&gt;
+            .. parameters for a single run ..
+        &lt;/run&gt;
+        .. other runs ..
+    &lt;/run_desc&gt;
+&lt;/genetik&gt;</code></pre>
+
+
+<p>Basically a run group is a collection of runs. The group has some configuration, including a name used to create the folder where results are stored. Each run can also have parameters. However, these parameters are expressed as substitutions into the evdesc.xml file. By default, all settings for a run are in the associated evdesc.xml file.</p>
+<p>The runs in a run group can be in one of two styles. In the most simple case a run group has a collection of unrelated runs. This feature is used to run multiple copies of the same run, or to perform multiple runs with slightly different parameters.</p>
+<p>The second case for a run group is to have a collection of runs that form an MGGA. In this case, each run represents a phase of the MGGA.</p>
+<p>The evdesc.xml file contains all of the parameters for a run. When a run group is executed, the substitutions for that run are performed in the default evdesc.xml file and the new file is saved for that run. This insures that we have the evdesc.xml file used to actually run each phase of an MGGA or each run in a multi-run simulation.</p>
+<p>The following is an example evdesc.xml file, and shows how the various GA parameters are set.</p>
+<pre class="codehilite"><code>&lt;genetik&gt;
+    &lt;evolution_desc&gt;
+  &lt;initial_operations&gt;256&lt;/initial_operations&gt;
+  &lt;max_operations&gt;256&lt;/max_operations&gt;
+
+  &lt;generationpop&gt;4000&lt;/generationpop&gt;
+  &lt;maxgenerations&gt;40&lt;/maxgenerations&gt;
+
+  &lt;optimize_raw_score_calculations&gt;false&lt;/optimize_raw_score_calculations&gt;
+  &lt;break_if_solution_found&gt;false&lt;/break_if_solution_found&gt;
+  &lt;max_terminal_fitness&gt;10000000&lt;/max_terminal_fitness&gt;
+  &lt;max_terminal_fitness&gt;10000000&lt;/max_terminal_fitness&gt;
+
+  &lt;save_generations&gt;true&lt;/save_generations&gt;
+  &lt;backup_stack&gt;false&lt;/backup_stack&gt;
+  &lt;clone_on_push&gt;false&lt;/clone_on_push&gt;
+  &lt;is_binary_problem&gt;true&lt;/is_binary_problem&gt;
+
+  &lt;topntosave&gt;5&lt;/topntosave&gt;
+
+  &lt;tournamentsize&gt;5&lt;/tournamentsize&gt;
+
+  &lt;reproductionprob&gt;.1&lt;/reproductionprob&gt;
+  &lt;crossoverprob&gt;.7&lt;/crossoverprob&gt;
+  &lt;mutationprob&gt;.2&lt;/mutationprob&gt;
+
+  &lt;crossovertries&gt;5&lt;/crossovertries&gt;
+  &lt;crossover_class_name&gt;com.sasbury.genetik.crossover.UniformCrossover&lt;/crossover_class_name&gt;
+  &lt;optimizer_class_name&gt;com.sasbury.genetik.optimize.GenetikEvolver&lt;/optimizer_class_name&gt;
+
+  &lt;available_operations&gt;
+      &lt;op&gt;%&lt;/op&gt;
+  &lt;/available_operations&gt;
+
+  &lt;wildcardmin&gt;0&lt;/wildcardmin&gt;
+  &lt;wildcardmax&gt;256&lt;/wildcardmax&gt;
+
+  &lt;available_fitness_tests&gt;
+
+      &lt;fitnesstest_desc&gt;
+          &lt;classname&gt;CurveFitTest&lt;/classname&gt;
+      &lt;/fitnesstest_desc&gt;
+
+  &lt;/available_fitness_tests&gt;
+    &lt;/evolution_desc&gt;
+&lt;/genetik&gt;</code></pre>
+
+
+<p>Fitness tests in Genetik 1.0 are implemented by extending the FitnessTest class. Subclasses need to implement a a single method that takes the results from a Sting program, interprets them as a chromosome and scores that chromosome. The following example is the code from the curve fit example's fitness function. The utility method extractIntegerProgramResults is used to remove the integers from the program that represent our chromosome. Then the mean square is calculated, scaled and returned. If an error occurs, a very bad fitness of <code>-1000</code> is returned. Also, the user data on the program is set. This data will be saved to disk and can be useful for debugging purposes.</p>
+<pre class="codehilite"><code>public double calculateRawScore(ExecutionContext context)
+{
+    double retVal = -1000.0;
+
+    try
+    {
+        int[] data = Genetik.extractIntegerProgramResults(context);
+        int size = data.length;//should be odd, so we can split better
+
+        double scale = 1.0/(size-1);
+        double sum = 0.0;
+
+        for(int i=0,max=size;i&lt;max;i++)
+        {
+            double x = scale * (double)i;
+            double y = scale * (double) data[i];
+            double f = f(x);
+            double diff = Math.abs(f-y);
+            sum += (diff*diff);
+        }
+
+        double ms = sum/size;
+
+        retVal = 1-(1000*ms);//spread out the ms some
+
+        ((Program)context.getProgram()).setUserData(&quot;Mean Square: &quot;+ms);
+    }
+    catch(Exception exp)
+    {
+        Application.instance().debug(exp);
+    }
+
+    return retVal;
+}</code></pre>
+
+
+<p>Genetik 1.0 included code to run in batch mode on the University of Michigan cluster as well as on the command line or embedded in another Java application.</p>
+<h3>Running Genetik 2.0</h3>
+<p>Genetik 2.0 was a re-write of Genetik 1.0 with a focus on simplifying the configuration files and making it easier to extend. At the time, Dr. Holloway and I were thinking that someone else might be using the library and I wanted to make it more accessible.</p>
+<p>One of the key changes was moving from XML to the Java properties file format. This is a key-value format. Genetik uses a simple rule to handle array like values. One key will contain a comma separated list of values. These values are used to construct other keys. This construct is exemplified with the runs key in the properties list below. This example is an actual description file, combining the run.xml and evdesc.xml roles, for a gamma shield simulation.</p>
+<pre class="codehilite"><code>#
+#
+# Core settings
+#
+runs=4_bands,8_bands,16_bands
+chromosome=com.sasbury.genetik.chromosomes.IntegerChromosome
+minimum_gene=0
+maximum_gene=6
+phase_translator=com.sasbury.experiment.xraylayers.FixedLayersFitnessTest
+phase_selection=com.sasbury.genetik.selection.TournamentSelection
+#
+# 4 band run settings
+#
+4_bands.population=250
+4_bands.generations=10
+4_bands.genes=4
+4_bands.shield_layers=4
+#
+# 8 band run settings
+#
+8_bands.population=500
+8_bands.generations=15
+8_bands.genes=8
+8_bands.shield_layers=8
+8_bands.generator=com.sasbury.genetik.generator.PhaseBasedGenerator
+#
+# 16 band run settings
+#
+16_bands.population=500
+16_bands.generations=20
+16_bands.genes=16
+16_bands.shield_layers=16
+16_bands.generator=com.sasbury.genetik.generator.PhaseBasedGenerator
+#
+# General test settings
+#
+tests=xraylayers
+xraylayers.class=com.sasbury.experiment.xraylayers.FixedLayersFitnessTest
+particles=2250000
+energy=0.05
+thickness=0.1
+lead_compare_thickness=0.05
+#
+# Reporting settings
+#
+customRelativeClass=com.sasbury.experiment.xraylayers.FixedLayersFitnessTest
+customReportingBase=/com/sasbury/experiment/xraylayers/
+customReporting=layers_ind.html,layers_sum.html,lead_dose.js
+customSummaryFragment=layers_sum.html
+customIndFragment=layers_ind.html
+#
+# MCNP settings
+#
+mcnp_cmd=mpirun,mcnp5.mpi,i=%INPFILE%
+#
+# Cluster settings
+#
+cluster_id=.nyx.engin.umich.edu
+class_path=~/genetik/lib/phd.jar
+estimated_time=200:00:00
+procs=46
+job_qos=hagar_flux
+job_queue=flux
+account=hagar_flux</code></pre>
+
+
+<p>Some items worth noting in this run description are the way a set of MGGA runs are defined using the key array value array of keys pattern is used. Also, properties can be passed to the fitness functions, like the command line for MCNP. Genetik 1.0 used an XML based reporting scheme. The 2.0 library moved to an HTML+Javascript scheme that allows custom web pages and files to be included. These appear the <em>Reporting Settings</em> section of the example. Genetik 2.0 also provided a simple way to pass information about the cluster, which is appears at the bottom of this file.</p>
+<p>Perhaps the biggest change that 2.0 made is how chromosomes are stored. In 1.0 the chromosomes are Sting programs. In 2.0 they are objects that can be anything. This simplifies problems where the chromosome is just an array of numbers.</p>
+<p>The following code block shows the code for the shortest path fitness function. This function implements both the scoring code and the code to translate from one phase of MGGA to the next.</p>
+<p>Genetik 2.0 also included a feature that allowed each element in the GA, including fitness functions, to validate the run properties before the simulation started. The shortest path does nothing for these validation steps, and they are hidden.</p>
+<pre class="codehilite"><code>package com.sasbury.experiment.shortestpath;
+
+import com.sasbury.genetik.*;
+import com.sasbury.genetik.chromosomes.*;
+import com.sasbury.genetik.driver.*;
+import com.sasbury.genetik.population.*;
+
+public class ShortestPathFitTest
+ implements FitnessTest, ChromosomeTranslator
+{
+    public static int[] adjustData(int[] data)
+    {
+        int[] newData = new int[data.length+2];
+
+        newData[0] = 0;
+        newData[newData.length-1] = (newData.length-1);
+
+        for(int i=0,max=data.length;i&lt;max;i++)
+        {
+            newData[i+1] = data[i];
+        }
+
+        return newData;
+    }
+
+    public static double calcBestScore(int size)
+    {
+        double scale = 1.0/(size-1);
+        double sum = 0.0;
+
+        for(int i=0,max=size-1;i&lt;max;i++)
+        {
+            double x1 = scale * (double)i;
+            double y1 = scale * (double)i;
+            double x2 = scale * (double)(i+1);
+            double y2 = scale * (double)(i+1);
+
+            sum += Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+        }
+
+        return 1-sum;
+    }
+
+    ... Validation ...
+
+    public Chromosome translate(Chromosome old
+                                , Run fromRun, Run toRun)
+    {
+        IntegerChromosome intChromo = (IntegerChromosome)old;
+        int[] values = intChromo.getGenes();
+        IndividualGenerator generator = (IndividualGenerator)
+           toRun.createObject(GenetikConstants.GENERATOR);
+        IntegerChromosome newChromo = (IntegerChromosome)
+           generator.generateIndividual(toRun).getChromosome();
+        int ratio = newChromo.geneCount()/intChromo.geneCount();
+
+        for(int i=0,max=intChromo.geneCount();i&lt;max;i++)
+        {
+            int value = values[i];
+
+            for(int k=0;k&lt;ratio;k++)
+            {
+                values[(i*ratio)+k] = value;
+            }
+        }
+
+        newChromo.setGenes(values);
+
+        return newChromo;
+    }
+
+    public double calculateRawScore(Individual ind
+                      , Run run, String testName)
+    {
+        double retVal = -1000.0;
+
+        try
+        {
+            int[] data = 
+               ((IntegerChromosome)ind.getChromosome()).getGenes();
+            data = adjustData(data);//add the first and last value
+
+            int size = data.length;//should be odd, so we can split better
+
+            double scale = 1.0/(size-1);
+            double sum = 0.0;
+
+            for(int i=0,max=size-1;i&lt;max;i++)
+            {
+                double x1 = scale * (double)i;
+                double y1 = scale * (double) data[i];
+                double x2 = scale * (double)(i+1);
+                double y2 = scale * (double) data[i+1];
+
+                sum += Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+            }
+
+            retVal = 1-(sum);
+
+            ind.setUserData(&quot;Length: &quot;+sum);
+        }
+        catch(Exception exp)
+        {
+            exp.printStackTrace();
+        }
+
+        return retVal;
+    }
+}</code></pre>
+
+
+<p>Like Genetik 1.0, the 2.0 version of the library includes code to run on the University of Michigan cluster as well as from the command line.</p>
+    </div>
+
+    <div>
+        
+
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/genetic%20algorithms/" class="tag">
+                genetic algorithms
+            </a>
+        
+            <a href="/tag/distributed%20computing/" class="tag">
+                distributed computing
+            </a>
+        
+            <a href="/tag/json/" class="tag">
+                json
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/portfolio/">Back to &#34;about me&#34;</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>First Synadia Release - Java Nats</h2>
+
+    <div>
+        <p>Today I released my first software for Synadia. I was tasked with re-writing the <a href="https://github.com/nats-io/java-nats">Java client library for NATs</a>, and despite a few hiccups released a library I am really proud of today. The new library is easy to use for publishing messages:</p>
+<pre class="codehilite"><code>Connection nc = Nats.connect(&quot;nats://myhost:4222&quot;);
+nc.publish(&quot;subject&quot;, &quot;hello world&quot;.getBytes(StandardCharsets.UTF_8));</code></pre>
+
+
+<p>and allows the developer to control threading for listening to messages:</p>
+<pre class="codehilite"><code>Dispatcher d = nc.createDispatcher((msg) -&gt; {
+    String response = new String(msg.getData(), StandardCharsets.UTF_8);
+    ...
+});
+
+d.subscribe(&quot;subject&quot;);</code></pre>
+
+
+<p>On top of that it supports TLS and is really fast. On my work machine I am getting the following performance as measured by an automated benchmark I included in the code. Over 10M/s messages published and the possibility of 4M/sec round trip is really cool. Also, the latency is around 50-60 microseconds on average which isn't quite the numbers I got with the <a href="/projects/ftl_java.html">Java FTL client</a>, but that was all JNI and this is pure Java with no external dependencies. The library even uses a simple regex-based parser for the INFO message sent from the server to avoid a dependency. So all this performance fits in a 68k jar file.</p>
+<pre class="codehilite"><code>Running warmup
+Current memory usage is 692.68 mb / 981.50 mb / 14.22 gb free/total/max
+Executing tests ........................................
+PubOnly 0b           10,000,000         10,147,222 msg/s       0.00 b/s
+PubOnly 8b           10,000,000          9,857,375 msg/s     75.21 mb/s
+PubOnly 32b          10,000,000         10,678,299 msg/s    325.88 mb/s
+PubOnly 256b         10,000,000          8,988,170 msg/s      2.14 gb/s
+PubOnly 512b         10,000,000          6,322,581 msg/s      3.01 gb/s
+PubOnly 1k            1,000,000          4,012,467 msg/s      3.83 gb/s
+PubOnly 4k              500,000          1,043,112 msg/s      3.98 gb/s
+PubOnly 8k              100,000            549,231 msg/s      4.19 gb/s
+PubSub 0b            10,000,000          2,024,471 msg/s       0.00 b/s
+PubSub 8b            10,000,000          2,302,611 msg/s     17.57 mb/s
+PubSub 32b           10,000,000          2,245,336 msg/s     68.52 mb/s
+PubSub 256b          10,000,000          1,862,266 msg/s    454.65 mb/s
+PubSub 512b           5,000,000          1,697,379 msg/s    828.80 mb/s
+PubSub 1k             1,000,000          1,320,446 msg/s      1.26 gb/s
+PubSub 4k               100,000            387,256 msg/s      1.48 gb/s
+PubSub 8k               100,000            196,183 msg/s      1.50 gb/s
+PubDispatch 0b       10,000,000          4,361,305 msg/s       0.00 b/s
+PubDispatch 8b       10,000,000          4,457,893 msg/s     34.01 mb/s
+PubDispatch 32b      10,000,000          4,282,411 msg/s    130.69 mb/s
+PubDispatch 256b     10,000,000          2,361,908 msg/s    576.64 mb/s
+PubDispatch 512b      5,000,000          2,240,632 msg/s      1.07 gb/s
+PubDispatch 1k        1,000,000          1,416,300 msg/s      1.35 gb/s
+PubDispatch 4k          100,000            388,592 msg/s      1.48 gb/s
+PubDispatch 8k          100,000            201,494 msg/s      1.54 gb/s
+ReqReply 0b              20,000              9,525 msg/s       0.00 b/s
+ReqReply 8b              20,000              9,644 msg/s     75.35 kb/s
+ReqReply 32b             10,000              9,652 msg/s    301.66 kb/s
+ReqReply 256b            10,000              8,294 msg/s      2.03 mb/s
+ReqReply 512b            10,000              8,295 msg/s      4.05 mb/s
+ReqReply 1k              10,000              8,379 msg/s      8.18 mb/s
+ReqReply 4k              10,000              7,897 msg/s     30.85 mb/s
+ReqReply 8k              10,000              7,420 msg/s     57.97 mb/s
+Latency 0b    5,000     33 /  50.15 / 146    +/- 0.78  (microseconds)
+Latency 8b    5,000     36 /  50.51 / 136    +/- 0.80  (microseconds)
+Latency 32b   5,000     37 /  49.80 / 142    +/- 0.79  (microseconds)
+Latency 256b  5,000     41 /  56.55 / 170    +/- 0.91  (microseconds)
+Latency 512b  5,000     42 /  57.59 / 182    +/- 0.93  (microseconds)
+Latency 1k    5,000     35 /  48.96 / 164    +/- 0.79  (microseconds)
+Latency 4k    5,000     37 /  51.73 / 232    +/- 0.84  (microseconds)
+Latency 8k    5,000     39 /  56.14 / 344    +/- 0.91  (microseconds)
+Final memory usage is 5.99 gb / 6.05 gb / 14.22 gb free/total/max</code></pre>
+
+
+<p>One of the great things about this project is that I got to dive in to the <a href="https://nats.io/documentation/internals/nats-protocol/">NATs protocol</a>. The protocol is very simple, but supports messaging in a fast, simple way. I am really happy with this first project, and looking forward to the next (although hoping it is in go instead of Java.)</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2018-7-16)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/synadia/" class="tag">
+                synadia
+            </a>
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/messaging/" class="tag">
+                messaging
+            </a>
+        
+            <a href="/tag/work/" class="tag">
+                work
+            </a>
+        
+            <a href="/tag/distributed%20computing/" class="tag">
+                distributed computing
+            </a>
+        
+            <a href="/tag/messaging/" class="tag">
+                messaging
+            </a>
+        
+            <a href="/tag/performance/" class="tag">
+                performance
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

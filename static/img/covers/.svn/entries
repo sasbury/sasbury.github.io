@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   repos="http://192.168.0.152:9991/sasbury"
+   revision="81"
+   url="http://192.168.0.152:9991/sasbury/trunk/sasbury.com/site/resources/images/covers"
+   uuid="e49a19a6-c100-4ba8-a98d-28477a8f7095"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name=""
+   kind="dir"
+   committed-rev="32"/>
+<entry
+   checksum="52873b65844a20d4e34e74c48d05fcbb"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="asp.jpg"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="f4aca611a5e5e86fb3b49de1c5fcecdd"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="cgi.gif"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="06a5e0852fb9482d1e206f6d9a7faa54"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="cgi_howto_j.png"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="cb89e0aa0a01855da015d21d1e174f49"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="cgi_howto_k.png"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="ebb89bbc044949f6bf14c221c53fa9d3"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="j2ee.jpg"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="c627253ff5d77e3be55b45585f05a4b5"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="j2ee_pat.jpg"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="b58238f427bb1fa1817a7fe3705d01a4"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="jfc.jpg"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="6bbd79cc0bedcbdfd9f2b8e942bbf6e3"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="linux.jpg"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="72243b54079405c91388b405844dfaa8"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="linux_r.png"
+   kind="file"
+   committed-rev="32"/>
+<entry
+   checksum="faad4f9f5972456689eff3df4730780c"
+   prop-time="2006-07-05T19:07:03.000000Z"
+   text-time="2006-01-30T03:21:15.000000Z"
+   committed-date="2006-01-30T03:21:15.187846Z"
+   name="perl.gif"
+   kind="file"
+   committed-rev="32"/>
+</wc-entries>

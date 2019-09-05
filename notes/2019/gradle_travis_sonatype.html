@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Publishing with Gradle to Sonatype and Maven Central on Travis</h2>
+
+    <div>
+        <p>I spent many hours yesterday trying to automate the release of the <a href="https://github.com/nats-io/java-nats">Java client library for NATs</a>. The goal was to upload a release to Sonatype's open source Nexus server whenever we tag a release in GitHub. Sonatype will then upload it to Maven Central. This involves uploading to Sonatype from Travis with my Gradle script, which turned out to be a pretty big deal. While I found a lot of help on the internet, no one had a single full deploy so I thought I might provide one for those that find it useful. All of the files/code involved are available in the client library repo linked above.</p>
+<p>There is a lot of groovy for the gradle setup and yaml for the travis, but I hope that seeing the full setup will save someone some time. This "tutorial" assumes that you are deploying to the open source Sonatype Nexus from Travis. I suspect you can do a bit of work to tweak it for other situations. But I will assume that you have access to Travis and that you have a Sonatype username and password.</p>
+<h2>The Signing Key</h2>
+<p>You will need a signing key so that you can sign your POM.xml and Jars. If you already have a PGP key, you can skip some of these steps, but it may be worth reading through in case you haven't registered your public key in a public place.</p>
+<p>To create a signing key, install <code>gpg</code> from <a href="https://gnupg.org/download/">here</a>. Choose the identity you want to associate with the key, which should match your organization or personal identity in some way. We are going to register this key in a public place so you want people to know it is you.</p>
+<p>To create the actual key pair run:</p>
+<pre class="codehilite"><code>$ gpg --gen-key</code></pre>
+
+
+<p>this will create a key. You can get the id using:</p>
+<pre class="codehilite"><code>$ gpg --list-keys --keyid-format short</code></pre>
+
+
+<p>The private key is stored locally and you don't want to check it into GitHub or anything like that. We will go through the process of hiding it in a moment. But first, we need to upload the public key to some registries that Sonatype will look for it on.</p>
+<p>Export the public key with some armor that relates to your organization or identity, I used "nats.io" for the client library:</p>
+<pre class="codehilite"><code>$ gpg --export -a &quot;nats.io&quot; &gt; public.key</code></pre>
+
+
+<p>Now we want to upload it to a few well known repositories, starting with <code>http://keys.gnupg.net:11371/</code>, <code>http://keyserver.ubuntu.com/</code> and <code>http://pool.sks-keyservers.net/pks/add</code>. You can do this manually, or on the command line:</p>
+<pre class="codehilite"><code>$ gpg --keyserver keyserver.ubuntu.com --send-keys &lt;keyid&gt;
+$ gpg --keyserver pool.sks-keyservers.net --send-keys &lt;keyid&gt;
+$ gpg --keyserver keys.gnupg.net --send-keys &lt;keyid&gt;
+$ gpg --keyserver pgp.mit.edu --send-keys &lt;keyid&gt;</code></pre>
+
+
+<p>The entire key process is rather painful, and seems to take time to propagate. But once it is done Sonatype will be able to identify you as you. More information is available on the <a href="https://central.sonatype.org/pages/working-with-pgp-signatures.html">Sonatype documentation site</a>.</p>
+<p>We will come back to the key again, when we set up the <code>travis.yml</code> file.</p>
+<h2>Gradle</h2>
+<p>Our gradle file will assume that five values are available:</p>
+<ul>
+<li>Your sonatype user name</li>
+<li>Your sonatype password</li>
+<li>Your signing key id (you got this from the list-keys command above)</li>
+<li>The password you used to sign the key</li>
+<li>The location of the signing key (this will be <code>.travis/nats.travis.gpg</code> in the example below)</li>
+</ul>
+<p>You can set these values in a ~/.gradle/gradle.properties file for local work:</p>
+<pre class="codehilite"><code>signing.keyId=&lt;key id&gt;
+signing.password=&lt;your pw&gt;
+signing.secretKeyRingFile=&lt;where you put the gpg keyring&gt;
+
+ossrhUsername=&lt;your sonatype user name&gt;
+ossrhPassword=&lt;your sonatype password&gt;</code></pre>
+
+
+<p>or you can use environment variables, which is what we will do for travis using secrets discussed below.</p>
+<p>The remaining discussion breaks down the <code>build.gradle</code> file and discusses each section. You can see the full file at <a href="https://raw.githubusercontent.com/nats-io/nats.java/2.6.4/build.gradle">github</a>.</p>
+<h3>Imports</h3>
+<p>The Nats Java client has a number of imports for the gradle file.</p>
+<pre class="codehilite"><code>plugins {
+    id 'java-library'
+    id 'java'
+    id 'jacoco'
+    id 'maven'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.github.kt3k.coveralls' version '2.8.4'
+    id 'osgi'
+    id 'io.codearte.nexus-staging' version '0.21.0'
+    id &quot;de.marcphilipp.nexus-publish&quot; version &quot;0.3.0&quot;
+}</code></pre>
+
+
+<p>The most important ones for this tutorial are <code>maven-publish</code> which is the newer alternative to uploadArchives, <code>signing</code> to sign the pom and jars, <code>io.codearte.nexus-staging</code> and <code>de.marcphilipp.nexus-publish</code> to manage the sonatype interactions. There was a major travis-to-sonatype issue related to ip address that these plugins solve, they also allow us to close and release a repository.</p>
+<h3>Variables, Values and Versions</h3>
+<p>The java library stores the version in 2 modes, one as pieces and one as a full string. At some point this should come from the tag but I haven't gotten that done yet.</p>
+<p>We also use the travis branch and tag to make some choices.</p>
+<pre class="codehilite"><code>def versionMajor = 2
+def versionMinor = 6
+def versionPatch = 4
+def versionModifier = &quot;&quot;
+def jarVersion = &quot;2.6.4&quot;
+def branch = System.getenv(&quot;TRAVIS_BRANCH&quot;);
+def tag = System.getenv(&quot;TRAVIS_TAG&quot;);
+
+archivesBaseName = 'jnats'
+group = 'io.nats'</code></pre>
+
+
+<p>The version used or files is calculated based on the version components and an optional <code>-SNAPSHOT</code> string that is there whenever the tag is missing. This snapshot flag will play a role in deployment as well. Any version with a snapshot will go to the snapshot repo on Sonatype. Non-snapshots, or releases, will go to the staging repository, before being closed and released to the releases repository.</p>
+<pre class="codehilite"><code>def getVersionName = { -&gt;
+    if (&quot;&quot;.equals(tag))  {
+        versionModifier = &quot;-SNAPSHOT&quot;
+    }
+
+    if (versionModifier != null &amp;&amp; versionModifier.length() &gt; 0) {
+        return &quot;&quot; + versionMajor + &quot;.&quot; + versionMinor + &quot;.&quot; + versionPatch + versionModifier
+    } else {
+        return &quot;&quot; + versionMajor + &quot;.&quot; + versionMinor + &quot;.&quot; + versionPatch
+    }
+}
+
+version = getVersionName()</code></pre>
+
+
+<p><a name="envvar"></a></p>
+<p>Now we get to the properties mentioned earlier. If the <code>SONATYPE_USERNAME</code> environment variable exists, we assume that all the values are in the environment. Otherwise they need to be in the <code>gradle.properties</code> file.</p>
+<pre class="codehilite"><code>if (System.getenv('SONATYPE_USERNAME') != null) {
+    project.ext['ossrhUsername'] = System.getenv('SONATYPE_USERNAME')
+    project.ext['ossrhPassword'] = System.getenv('SONATYPE_PASSWORD')
+    project.ext['signing.secretKeyRingFile'] = System.getenv('GPG_KEYRING_FILE')
+    project.ext['signing.keyId'] = System.getenv('GPG_KEY_ID')
+    project.ext['signing.password'] =  System.getenv('GPG_KEY_PASSPHRASE')
+}</code></pre>
+
+
+<h3>Task management <a name="task_manage"></a></h3>
+<p>We will enable and disable some tasks. Signing is on only if this is a release build. Close and release are on only if we are going to be doing a staging release and we can get the id for the staging repository. <code>closeRepository</code> and <code>releaseRepository</code> come from the plugins we added above. <code>nexusPublishing</code> also refers to those plugins. I wasn't able to automate the close/release without those.</p>
+<pre class="codehilite"><code>tasks {
+    signing {
+        onlyIf {!version.endsWith(&quot;SNAPSHOT&quot;)}
+    }
+
+    closeRepository {
+        onlyIf { nexusPublishing.useStaging.get() }
+    }
+    releaseRepository{
+        onlyIf { nexusPublishing.useStaging.get() }
+    }
+}</code></pre>
+
+
+<h3>Dependencies and Source Steps</h3>
+<p>The java build only depends on a couple modules. Junit for tests and the eddsa module for an ed25519 implementation. Your project will differ here of course.</p>
+<pre class="codehilite"><code>repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'net.i2p.crypto:eddsa:0.3.0'
+    testImplementation 'junit:junit:4.12'
+}</code></pre>
+
+
+<p>The source sets are broken into the main library, examples and tests.</p>
+<pre class="codehilite"><code>sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java','src/examples/java']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
+}
+
+osgiClasses {
+    exclude(&quot;io/nats/examples/**&quot;)
+}</code></pre>
+
+
+<p>Everything but the examples are part of the OSGI registration.</p>
+<h3>Basic Task Setup</h3>
+<p>First we set up the Jar with the appropriate attributes, and without the example files.</p>
+<pre class="codehilite"><code>jar {
+    manifest {
+        attributes('Implementation-Title': 'Java Nats',
+                'Implementation-Version': jarVersion,
+                'Implementation-Vendor': 'nats.io')
+        instruction &quot;Import-Package&quot;, &quot;!net.i2p.crypto.eddsa.math&quot;
+        instruction &quot;Import-Package&quot;, &quot;net.i2p*&quot;
+        instruction &quot;Import-Package&quot;, &quot;io.nats*&quot;
+    }
+    exclude(&quot;io/nats/examples/**&quot;)
+}</code></pre>
+
+
+<p>Next we configure the tests. The java client uses random numbers which we have found can be an issue on linux if you don't set up the urandom source.</p>
+<pre class="codehilite"><code>test {
+    maxHeapSize = &quot;2g&quot;
+    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        jvmArgs '-Djava.security.egd=file:/dev/./urandom'
+    }
+    testLogging {
+        exceptionFormat = 'full'
+        events &quot;started&quot;, &quot;passed&quot;, &quot;skipped&quot;, &quot;failed&quot;
+    }
+}</code></pre>
+
+
+<p>Next we configure the java doc. You may find the <code>doLast</code> step interesting. We set the <code>favicon.ico</code> for all the files as well as copy images into the java doc folder. The implementation and examples are excluded from the official Java doc.</p>
+<pre class="codehilite"><code>javadoc {
+    options.overview = 'src/main/javadoc/overview.html' // relative to source root
+    source = sourceSets.main.allJava
+    title = &quot;NATS.IO Java API&quot;
+    excludes = ['io/nats/client/impl', 'io/nats/examples']
+    classpath = sourceSets.main.runtimeClasspath
+    doLast {
+            exec {
+                println &quot;Updating favicon on all html files&quot;
+                workingDir 'build/docs/javadoc'
+                // Only on linux, mac at this point
+                commandLine 'find', '.', '-name', '*.html', '-exec', 'sed', '-i', '-e', 's#&lt;head&gt;#&lt;head&gt;&lt;link rel=&quot;icon&quot; type=&quot;image/ico&quot; href=&quot;favicon.ico&quot;&gt;#', '{}', ';'
+            }
+            copy {
+                println &quot;Copying images to javadoc folder&quot;
+                from 'src/main/javadoc/images'
+                into 'build/docs/javadoc'
+            }
+        }
+}</code></pre>
+
+
+<p>The examples go in a jar of their own.</p>
+<pre class="codehilite"><code>task examplesJar(type: Jar) {
+    classifier = 'examples'
+    manifest {
+        attributes('Implementation-Title': 'Java Nats Examples',
+                'Implementation-Version': jarVersion,
+                'Implementation-Vendor': 'nats.io')
+    }
+    from(sourceSets.main.output) {
+        include &quot;io/nats/examples/**&quot;
+    }
+}</code></pre>
+
+
+<p>The Java doc and source each go in a jar:</p>
+<pre class="codehilite"><code>task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}</code></pre>
+
+
+<p>We build a "fat jar" that has all the dependencies to make life easy during development. This is not uploaded to sonatype/nexus.</p>
+<pre class="codehilite"><code>task fatJar(type: Jar) {
+    classifier = 'fat'
+    manifest {
+        attributes('Implementation-Title': 'Java Nats With Dependencies',
+                'Implementation-Version': jarVersion,
+                'Implementation-Vendor': 'nats.io')
+    }
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}</code></pre>
+
+
+<p>Finally, we use jacocoTestReport to build a coverage report.</p>
+<pre class="codehilite"><code>jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
+    afterEvaluate { // only report on main library not examples
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/examples**'])
+        })
+    }
+}</code></pre>
+
+
+<h3>The Artifacts</h3>
+<p>The sonatype deployment will release four artifacts, the main jar plus the javadoc, sources and examples.</p>
+<pre class="codehilite"><code>artifacts {
+    archives javadocJar, sourcesJar, examplesJar
+}</code></pre>
+
+
+<p>We will sign all of these artifacts <a href="#task_manage">when signing is enabled</a>. Note, we will do something special for the pom.xml below.</p>
+<pre class="codehilite"><code>signing {
+    sign configurations.archives
+}</code></pre>
+
+
+<h3>The Nexus/Sonatype Magic</h3>
+<p>Now we get to the magic. First, we have to configure the <code>nexusStaging</code> plugin with the package group and our authentication information.</p>
+<pre class="codehilite"><code>nexusStaging {
+    packageGroup = group
+    username = project.getProperty('ossrhUsername')
+    password = project.getProperty('ossrhPassword')
+}</code></pre>
+
+
+<p>You can also provide a staging repo id, but we will rely on the one that Sonatype provides for our group.</p>
+<p>Finally we want to configure the publishing. There is a lot here, and I want to call out a few very important sections without chunking the file any more than I already have.</p>
+<p>First, you have to list the artifacts you want to publish. This includes the <code>components.java</code> plus the jars we created.</p>
+<p>Second, you set the pom here, that is no big surprise. But you have to have the <code>pom.withXML</code> section to sign your pom. Otherwise it will not be signed and if it is not signed the sonatype close operation will fail.</p>
+<p>Third, all of the signatures have to be classified in the <code>project.tasks.signArchives.signatureFiles.each</code> section. This code is based on the nexus plugins readme files but I had to add the <code>examples</code> jar to the regular expression match. If you have other artifacts you will need to add them here.</p>
+<p>Fourth, you have to give the <code>nexusPublishing</code> plugin the authentication information. This is not shared with the staging plugin above. At least it wasn't for me, and the error messages were not that helpful ;-)</p>
+<p>Fifth, and finally, you have to have the <code>model</code> section to require signing before publishing, especially the signing of the pom. Note the naming of the final section <code>publishMavenJavaPublicationToSonatypeRepository</code> is based on the <code>nexusPublishing repositories sonatype</code> hierarchy before it.</p>
+<pre class="codehilite"><code>publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact examplesJar
+            artifact javadocJar
+            pom {
+                name = 'jnats'
+                packaging = 'jar'
+                groupId = group
+                artifactId = archivesBaseName
+                description = 'Client library for working with the NATS messaging system.'
+                url = 'https://github.com/nats-io/nats.java'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = &quot;synadia&quot;
+                        name = &quot;Synadia&quot;
+                        email = &quot;info@synadia.com&quot;
+                        url = &quot;https://nats.io&quot;
+                    }
+                }
+                scm {
+                    url = 'https://github.com/nats-io/nats.java'
+                }
+            }
+
+            pom.withXml {
+                def pomFile = file(&quot;${project.buildDir}/generated-pom.xml&quot;)
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc|examples)\.jar\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                    } else {
+                        classifier = null
+                    }
+                    extension = 'jar.asc'
+                }
+            }
+        }
+    }
+
+    nexusPublishing {
+        repositories {
+            sonatype {
+                username = project.getProperty('ossrhUsername')
+                password = project.getProperty('ossrhPassword')
+            }
+        }
+    }
+
+    model {
+        tasks.generatePomFileForMavenJavaPublication {
+            destination = file(&quot;$buildDir/generated-pom.xml&quot;)
+        }
+        tasks.publishMavenJavaPublicationToMavenLocal {
+            dependsOn project.tasks.signArchives
+        }
+        tasks.publishMavenJavaPublicationToSonatypeRepository {
+            dependsOn project.tasks.signArchives
+        }
+    }
+}</code></pre>
+
+
+<p>With this gradle file, we are ready to move on to Travis.</p>
+<h2>Travis</h2>
+<p>Most of your travis configuration is specific your project, but there are two pieces that you will need to set up to work with gradle. The first is getting your key ready. The second, is setting up the secrets. I discuss those two things first, but really you need a travis.yml file to perform them.</p>
+<h3>Storing the Key For Travis</h3>
+<p>In order for Travis to run the Gradle signing plugin you need to add your key to the repository.</p>
+<p>The first step is to install the travis CLI. I use the <a href="https://docs.travis-ci.com/user/encryption-keys/">gem discussed here</a>, which also has information about encryption keys.</p>
+<p>Of course you don't want to do this in plain text, so instead you can export the secret key. I put it in the .travis folder.</p>
+<pre class="codehilite"><code>$ gpg --export-secret-key &lt;TRAVIS_KEY_ID&gt; &gt; nats.travis.gpg
+$ travis encrypt-file .travis/nats.travis.gpg</code></pre>
+
+
+<p>This will create a <code>.enc</code> version of the file. <strong>Delete</strong> the original, and do not check it in.</p>
+<p>Travis will print out a line of code for you to put in your build script:</p>
+<pre class="codehilite"><code>- openssl aes-256-cbc -K $&lt;some key&gt; -iv $&lt;some iv&gt; -in &lt;in file path&gt; -out &lt;out file path&gt; -d</code></pre>
+
+
+<p>Now you have a pgp key that you can safely check in, but that you can also use in Travis builds.</p>
+<h3>Storing Your Login Info For Travis</h3>
+<p>Next you want to update your <code>travis.yml</code> with four secrets:</p>
+<ul>
+<li>The sonatype user name and password</li>
+<li>The GPG key id</li>
+<li>The GPG Key passphrase</li>
+</ul>
+<p>We will add these as secrets to the <code>travis.yml</code> which will result in them being environment variables when we run the script.</p>
+<p>You can use the --add command below.</p>
+<pre class="codehilite"><code>$ travis encrypt SONATYPE_USERNAME=&quot;&lt;YOUR_JIRA_USER_NAME&gt;&quot; --add
+$ travis encrypt SONATYPE_PASSWORD=&quot;&lt;YOUR_JIRA_PASSWORD&gt;&quot; --add
+$ travis encrypt GPG_KEY_ID=&quot;&lt;TRAVIS_GPG_KEY_ID&gt;&quot; --add
+$ travis encrypt GPG_KEY_PASSPHRASE=&quot;&lt;TRAVIS_KEY_PASSPHRASE&gt;&quot; --add</code></pre>
+
+
+<p>or use</p>
+<pre class="codehilite"><code>$ travis encrypt -i</code></pre>
+
+
+<p>to avoid passwords in shell history and add them to the global section manually.</p>
+<p>Travis will want to know the repository this is for, if it can't figure it out use <code>-r &lt;repo owner&gt;/&lt;repo&gt;</code> for example <code>-r nats-io/nats.java</code>.</p>
+<blockquote>
+<p>NOTE - If your password has special characters to <code>bash</code>, which may be required by Sonatype, you need to escape them before you encrypt them. If you do not then bash will mess them up when Travis tries to set them.</p>
+</blockquote>
+<h3>The Travis YAML File</h3>
+<p>For the NATS Java client, the <a href="https://raw.githubusercontent.com/nats-io/nats.java/2.6.4/.travis.yml">final travis file</a> looks like this (if you unchunk it):</p>
+<p>First some standard settings for the image and JDK versions.</p>
+<pre class="codehilite"><code>dist: trusty
+language: java
+sudo: required
+jdk:
+- openjdk8
+- openjdk9
+- openjdk10
+- openjdk11
+- oraclejdk8
+- oraclejdk9</code></pre>
+
+
+<p>For the tests we grab the NATS server binary.</p>
+<pre class="codehilite"><code>before_script:
+- wget &quot;https://github.com/nats-io/nats-server/releases/download/$nats_server_version/nats-server-$nats_server_version-linux-amd64.zip&quot;
+-O tmp.zip
+- unzip tmp.zip
+- mv nats-server-$nats_server_version-linux-amd64 nats-server</code></pre>
+
+
+<p>Then we decrypt the signing key (see above):</p>
+<pre class="codehilite"><code>before_install:
+- openssl aes-256-cbc -K $encrypted_f07928735f08_key -iv $encrypted_f07928735f08_iv
+-in .travis/nats.travis.gpg.enc -out .travis/nats.travis.gpg -d</code></pre>
+
+
+<p>We assemble and run the tests, as well as manage the cache:</p>
+<pre class="codehilite"><code>install:
+- &quot;./gradlew assemble -x signArchives&quot;
+script:
+- &quot;./gradlew check&quot;
+#for testing - &quot;./gradlew build -x test&quot;
+before_cache:
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+directories:
+- &quot;$HOME/.gradle/caches/&quot;
+- &quot;$HOME/.gradle/wrapper/&quot;</code></pre>
+
+
+<h4>The Magic</h4>
+<p>After the build succeeds we use three conditionals. I found these conditionals to be a bit of a pain at first, not the <code>- |</code> syntax to allow the shell script. Also i had to use <code>-z</code> for the empty check on the tag and not <code>== ""</code>.</p>
+<p>We deploy the <code>oraclejdk8</code> build for compatibility. We publish on a test branch <code>travis_deploy</code> and on <code>master</code> if the tag is not set. Travis will set the branch value to the tag value if one is provided. In that case we do a publish and a close/release.</p>
+<p><code>publishToSonatype</code> comes from the nexus plugins and is related to that <code>nexusPublishing repositories sonatype</code> hierarchy in the gradle publishing configuration. For non-release versions, ie SNAPSHOTS, this step will overwrite the last snapshot. Dependents can use:</p>
+<p><code>https://oss.sonatype.org/content/repositories/snapshots/</code></p>
+<p>to access the snapshot artifacts.</p>
+<p>The <code>closeAndReleaseRepostiory</code> also comes from the plugins and will try to close the staging repository and release it. If this succeeds the artifacts will eventually be uploaded to maven central, which takes a couple hours. They will be available on sonatype in a few minutes.  Dependents can use:</p>
+<p><code>https://oss.sonatype.org/content/repositories/releases/</code></p>
+<p>to access the release artifacts, or get them from Maven central when they get there.</p>
+<pre class="codehilite"><code>after_success:
+- &quot;./gradlew test jacocoTestReport coveralls&quot;
+- |
+if [ &quot;${TRAVIS_BRANCH}&quot; == &quot;travis_deploy&quot; ] &amp;&amp; [ -z &quot;${TRAVIS_TAG}&quot; ] &amp;&amp; [ &quot;${TRAVIS_JDK_VERSION}&quot; == &quot;oraclejdk8&quot; ]; then
+    ./gradlew -i sign publishToSonatype
+fi
+- |
+if [ &quot;${TRAVIS_BRANCH}&quot; == &quot;master&quot; ] &amp;&amp; [ -z &quot;${TRAVIS_TAG}&quot; ] &amp;&amp; [ &quot;${TRAVIS_JDK_VERSION}&quot; == &quot;oraclejdk8&quot; ]; then
+    ./gradlew -i sign publishToSonatype
+fi
+- |
+if [ &quot;${TRAVIS_BRANCH}&quot; == &quot;${TRAVIS_TAG}&quot; ] &amp;&amp; [ ! -z &quot;${TRAVIS_TAG}&quot; ] &amp;&amp; [ &quot;${TRAVIS_JDK_VERSION}&quot; == &quot;oraclejdk8&quot; ]; then
+    ./gradlew -i sign publishToSonatype closeAndReleaseRepository
+fi</code></pre>
+
+
+<h4>The Environment Setup</h4>
+<p>Remember those secrets, those go in the env/global section. The NATS Java client also uses a variable for the nats-server version and the path we install it at. The final environment variable points to the signing key file. This environment variable, along with the secret ones are used to cross the <a href="#envvar">boundary to the gradle file</a>.</p>
+<pre class="codehilite"><code>env:
+global:
+- nats_server_version=v2.0.4
+- nats_server_path=$TRAVIS_BUILD_DIR/nats-server/nats-server
+- GPG_KEYRING_FILE=.travis/nats.travis.gpg
+- secure: yvOfk7kJzzTQ38n444jTDets24FZmxewwb3lrhXwpHTwOnQyq/B8QaHeqvhneECMc0Bq5M4blTlJ/wOWJAvs61POv2QVkyw+u8cVNROzkb8GPaH4ybPo8HMl33EHFNqh1KRo2C9hAPMYbbTjKCVY2UdkdfJ2l4lN/Awk7uEDX8ckc/sENhDeQjY/xoGZUP28O568Eg4ZxN3fr3WEV/0T+R15YyL2X0ev8MiGJM5TojXnNFKdb5fkUodRWwiY8JDn5xzP7xUzzen7MqE/5YNTcIC6haU8LToJM2gXEQtdoWLZqMPWr7k4A+eTBO5vl9qWrPBaOodFJYKzEjrEDfHj5RR9uaufEsnwQzXKw1ODrIFVZiC2n73j/tatWDI+vjnJ5tO+VMwWj53qdBYrvYeyewIT3cz9rrDHH8fGINsKAsk6HgWM3SMgeNSuXjRN0ePxEph5FVQ3ZUjF1ZXp90O7kjD5kXg/jVs6GrhCviRT3fx6Z4hyat9ytshy66jqcttHEfJ5sSOBg8fVbWJjLbxmghWUFp1fuc0HGNiMJStEyOBai5AkG6uJccTlgjlNL/8mgEF+fxo8HGVyStQzRnr7LJuCmWW9hx/aBVmqXR4p6cRgsSO09PvHRmcsLQoktCxVxsvcfblQqMbiQKjsJ4tXLe0U88DMOHnEGOgtik/tt+4=
+- secure: isW18c01AJEDAPUUl6rKcewHxOqItTW0TiiEIrWQqQP/C3O06WgAbiFYVFPJ9zCi6me0Wj3YMmEoxiYBhFdgH/O5xoQnnU7xIfD9hcmByglsoyGsK/Wz0wcERoVf9bfbVQkj9q/Mg7kaUZCMWqcFR3CqHEGu8UH5x7ecDW5FXfAQDjN5czT1j1VAwhHZCfIktJuy/GzoFGgRJpvnFPSlHmi0I8fApoX43tmOCkTVHnaXt9CDL3A5EIKtok5dwu0FF5d9hQFncJB8gqGxd+r8a3W3+0Gfgdou3x+AlGTf3R62LgB03GY0MFrMVfanWJE1ORdV0o9hC3AiwOsKBTungZ0arQeXtDXHSeMY52O6u7C8MCwQgbTmzO2YsmMwwTL98PPQxEJ6c8r7WBAfxzxxRTJ/QjPqQdyWV9dFWOnsmEhBLM2Wi858dJlw5fDEoHgy8EUZTQcquUWqEzTJca1VdrLza/PlND8dqfAjxqINtpsXu88JsLUu5VjFiLwln5NpdNKfcY4oaPiLLYdrSgdxBfHCCISP+r8iqgKLDguFwza3xcPSFwqtEq8aYmy0fjgd0c9hlz6oe0NvLc4kPJf4q9NDjffUXBciiv8VXdL3YyRG67h9AF+ndbM8NHsup5FfmALfq2bGIpe4USIqoOAZFUSa35hPDW87C7Z4vvPvb9I=
+- secure: YdGX/qrEsHAdRmp0+pp2HWmcs6hfG58FWfmHZqb9ZBQHTn0AgiGWia+McQeULpq3fe8NDT+W2DWaRgwWRup3yp9bnlvP+1PmPzo0mZhoHIYvGrcc5RCiA5yv9gBPyX6Xhbi9LaXGsUjm4aInDmHihDV5GxhgJa1+2q8/KOdm9ck1bNkdG2EVx//JDlMzOKrAlVwpK4Hpi3XSK6V70YUiPYK7h/8cJztjJd/rNFz9iYj0qDh8t1VAMOmqWL/otY1jBzDxGAdN30yXnEJwjtsDwSLvaSWp3g/s4mpBF237D5L53Y71wcadkRi69LB0ZR4mqHkEUOA/EHOIBTubf+tKavbU9UPu+3QDRj1ohCklrh8/eaAWXR4ntyTcL+TmP48lQeZA0O+IwglxrCTvRB/lhX5sUUVCIMejaMCiPlzXMcGzJZixl1ZVgEALq77UVv+d+xnC8oFmfdkAFsF8jbcMwqe0D3+uRHqlR3wZXPTMyb/NxysYfvNBD8xVU6vPqLWW7KPxDtEpCO4m2J6Tn1KxuAocowcPUiL/Xdi5Yc5PV5k10kHjBELhAAexw+1doyzlKKwZdjLZt/4KeDxYETPKFgkUrnk7HUCoMdlopIhBMxm5j0fABBk9cnX8DZ826ZlgIJ5YFgkZJkPLyZv8RALTsTzeiyRroPvDckF7+wELkCY=
+- secure: n1r8PLtKgQbW0v0C+MzKRg+EcSXsBBnBe1u8/OyPdC84X6Zwe7JRv/C55Zx71I3yzLhlY6zjBtsNBTO1hgViDPlnDGFl3BL2+fQEi6sofqThgaTSB4UIqTVY8jDYvXp7fcLqN4jM83ElTlfWRSlQHyQ5FKLdla81EcGOB+cL/BObE+Adf9CGGcf7oUd+2MVU+mrEZZTRvaUk32eXzYqEHfib1EHOvyf4ACXbGHe7bIaO6dxAhVNlTjbDdyEdSDFTrtNCFA+t0780IcPhf7uaOy/JBFZ2uL33IqUGih44/GsHj2zJjJmHEL2NtcBhLeuAbRFT6VuE+13DtaB7eNwuXCD4d553vFWK0jT3eKmVgePswHmB1Vs8wsGa92LQLP8vHDCqeMBYzCxWK3hlJj+bzok9AXdyn0IECMTMXc9KLNDIfHrvvmu1DfpuKklmTETII4zSkcPkMAO+VU+kxJ+krf7CYb519KDGpF97bLBWnBboBj3WOx70ux1Fm9ah28YEMPuGHp3Ft6o7ozi2eP8a4YxXo8wQUxe62UIx0e4hDv43aa2Qzvnu9ldEL21WduzlBGjjPTD2GxtkIaB8H1nmH9sgShGVfNwcba3LlO/xU5nUTbrQVcP6WEvlvkdfQmbX4AGh1jCWLWVvxjyPxfZrlARE1JRV5x0oOeH79KA9a18=</code></pre>
+
+
+<h2>Conclusions</h2>
+<p>That is a lot of configuration. The key places I found friction:</p>
+<ul>
+<li>The two nexus plugins are key. In particular they use the session repo id which is required for travis deployments to avoid the ip shuffle that happens.</li>
+<li>You have to configure the authentication for both nexus plugins.</li>
+<li>You must manually set up the pom.xml signature, without that you can't close a staging repository.</li>
+<li>Travis sets the branch to the tag if their is one, the branch won't be <code>master</code> in that case.</li>
+<li>Use <code>- |</code> to set up bash conditionals for travis</li>
+<li>You have to set up the model dependencies to make sure signing happens for the publish step</li>
+</ul>
+<p>For an open source project there is also the issue that when someone wants to build locally they may not have the gradle.properties file. Turning off the sign step in most cases is an important piece of making the project friendly to developers.</p>
+<p>I hope that helps someone.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2019-8-31)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/synadia/" class="tag">
+                synadia
+            </a>
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+            <a href="/tag/work/" class="tag">
+                work
+            </a>
+        
+            <a href="/tag/gradle/" class="tag">
+                gradle
+            </a>
+        
+            <a href="/tag/sonatype/" class="tag">
+                sonatype
+            </a>
+        
+            <a href="/tag/travis/" class="tag">
+                travis
+            </a>
+        
+            <a href="/tag/pgp/" class="tag">
+                pgp
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href=""></a>
+    </div>
+
+    <h2>Developing Java Enterprise Applications</h2>
+
+    <div>
+        <p>Welcome to the website for our book <em>Developing Java Enterprise
+Applications</em>. This site contains errata, updates and resources that we
+hope will help our readers. If you have any suggestions or found any
+problems in the book, please email us at ejava <em>at</em> sasbury.com so that we can update the site.</p>
+<h3>Code Updates and Examples</h3>
+<p><strong>JHTML Servlet</strong></p>
+<p>This <a href="/static/resources/jhtml.jar" title="servlet">servlet</a> is very similar to the pagecompile servlet described in the book. We have released it under the 
+<a href="http://www.gnu.org/copyleft/gpl.html" title="Gnu Public License">Gnu Public License</a>. Please use the documentation in the book for configuring the parameters, 
+with two exceptions. First the character encoding is always the default. Second,
+ you must define an initialization parameter called <em>workingDir</em>. This is the directory where the compiler will put .java and .class files by default. Finally, there is 
+ a bug in the current implementation that capitalizes all initialization properties passed to servlets included in the page using SSI. <em>The source is included in the jar file. Please let us know if you have any suggestions.</em></p>
+<p><strong>Network Context</strong></p>
+<p>This <a href="/static/resources/network_context.jar" title="network context">jar file</a> contains a simple RMI implementation of the JNDI namaing services. </p>
+<p>By using RMI, the JNDI provider is network saavy. To use the provider, run the server called networkctx.NCS, set your factory to</p>
+<p><code>networkctx.NetworkInitCtxFactory</code></p>
+<p>and your provider url to</p>
+<p><code>rmi://hostname/networkctx.NetworkContext</code></p>
+<p><em>This is a beta product.</em></p>
+<p><strong>File Copier</strong></p>
+<p>The <a href="/static/resources/FileCopier.java" title="FileCopier">FileCopier</a> class provides 
+a number of useful methods for copying directories and files, with or without filters.</p>
+<h3>Errata</h3>
+<p>No errata have been reported.</p>
+    </div>
+
+    <div>
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href=""></a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

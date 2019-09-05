@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href=""></a>
+    </div>
+
+    <h2>Developing Java Enterprise Applications 2nd Edition</h2>
+
+    <div>
+        <p>Welcome to the website for the second edition of our book <em>Developing Java Enterprise
+Applications</em>. This site contains errata, updates and resources that we
+hope will help our readers. If you have any suggestions or found any
+problems in the book, please email us at ejava <em>at</em> sasbury.com so that we can update the site.</p>
+<h3>Code Updates and Examples</h3>
+<p><strong>Security</strong></p>
+<p>For some reason, Sun decided that I need to be protected from my own server. So servlets are not allowed to right to the file system by default. This will effect a number of examples. To fix this problem open the lib/security/server.policy file. Scroll to the final grant statement and update the file permissions to include:</p>
+<p><code>permission java.io.FilePermission "*", "read,write,delete";</code></p>
+<p>and</p>
+<p><code>permission java.io.FilePermission "${com.sun.enterprise.home}${file.separator}-", "read,write,delete";</code></p>
+<p>by adding the write and delete permissions to these two entries. This will allow all code to read and write files.</p>
+<p><strong>Search Servlet</strong></p>
+<p>The Search Servlet is broken, due to the j2ee's implementation of the security manager. In general EJBs and servlets should not use threads directly, but we were doing so to simplify this example. To fix this problem, replace the IndexManager.java file with <a href="/static/resources/IndexManager.java" title="IndexManager.java">this one</a>, which removes the use of threads in the IndexLoader. This version will pause for the first user, instead of failing. Or, keep the existing IndexManager that runs in the background and update the server.policy file to include the line:</p>
+<p><code>permission java.lang.RuntimePermission "modifyThreadGroup";</code></p>
+<p>in the final grant block that effects all code. Be sure to fix the file security issues mentioned above. </p>
+<p><strong>Container Managed Persistence</strong></p>
+<p>Sun updated the CMP model after the book was published. Check the documentation for the latest information, and check back here for new examples.</p>
+<h3>Errata</h3>
+<ul>
+<li>Some build scripts use the Unix <code>rm</code> instead of the DOS <code>del</code> command</li>
+<li>We used the machine address <code>192.168.0.172</code> and name <code>brisco</code> for some examples. You will need to update these.</li>
+<li>In 4-tier store example<ul>
+<li>Search servlet should be updated, see Code Updates section.</li>
+<li>Use the deploy tool's <code>Tools-&gt;Server Configuration</code> menu to create the ejava datasource after you run the build script</li>
+<li>Make sure to copy the ads directory to <code>c:\temp</code> or update the <code>web.xml</code> file to reflect the directory you want to use.</li>
+<li>Make sure to start the Cloudscape database, using the cloudscape executable in the bin directory, before trying to make a purchase</li>
+</ul>
+</li>
+</ul>
+    </div>
+
+    <div>
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href=""></a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Printing the Java Environment/Properties</h2>
+
+    <div>
+        <p>There are times when I have been programming in Java when I want to know about the system environment or system properties. I created the following class to print out the default properties and environment, but you could convert it to a utility class for use in a larger project.</p>
+<p>For both environment variables and system properties I sort the results to make specific values easier to find.</p>
+<pre class="codehilite"><code>import java.util.*;
+
+public class EnvPrint
+{
+    public static void main(String args[])
+    {</code></pre>
+
+
+<p>The first step is to get the system environment and print a header.</p>
+<pre class="codehilite"><code>        Map&lt;String,String&gt; env = System.getenv();
+        Iterator&lt;String&gt; keys = env.keySet().iterator();
+
+        System.out.println();
+        System.out.println(&quot;===== System Environment =====&quot;);
+        System.out.println();
+
+        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();</code></pre>
+
+
+<p>I make a sorted list to make reading easier.</p>
+<pre class="codehilite"><code>        while(keys.hasNext())
+        {
+            String key = keys.next();
+            list.add(key);
+        }
+
+        Collections.sort(list);</code></pre>
+
+
+<p>Then print the names and values.</p>
+<pre class="codehilite"><code>        for(int i=0,max=list.size();i&lt;max;i++)
+        {
+            String key = list.get(i);
+            String value = env.get(key);
+            System.out.println(key+&quot; = &quot;+value);
+        }</code></pre>
+
+
+<p>Next I get the system properties and print them. Since one system property is the line separator, i escape occurrences of \n, \r and \f.</p>
+<pre class="codehilite"><code>        Properties props = System.getProperties();
+        Iterator propNames = props.keySet().iterator();
+
+        System.out.println();
+        System.out.println(&quot;===== System Properties =====&quot;);
+        System.out.println();
+
+        list.clear();
+
+        while(propNames.hasNext())
+        {
+            String key = (String) propNames.next();
+            list.add(key);
+        }
+
+        Collections.sort(list);
+
+        for(int i=0,max=list.size();i&lt;max;i++)
+        {
+            String key = (String)list.get(i);
+            String value = String.valueOf(props.getProperty(key));
+            value = value.replace(&quot;\n&quot;,&quot;\\n&quot;);
+            value = value.replace(&quot;\r&quot;,&quot;\\r&quot;);
+            value = value.replace(&quot;\f&quot;,&quot;\\f&quot;);
+            System.out.println(key+&quot; = &quot;+value);
+        }</code></pre>
+
+
+<p>And that is all there is to it.</p>
+<pre class="codehilite"><code>    }
+}</code></pre>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (archive)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/java/" class="tag">
+                java
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>

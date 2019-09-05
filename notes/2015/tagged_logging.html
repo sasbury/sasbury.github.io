@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sasbury.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Stephen Asbury">
+
+    <link rel="shortcut icon" href="/static/img/rad_tiny.ico" />
+ 
+    <!-- CSS -->
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Mono' rel='stylesheet' type='text/css'>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/static/css/prettify.css" rel="stylesheet">
+    <link href="/static/css/sasbury.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div id="wrap">
+
+      <!-- Begin page content -->
+      <div class="container">
+        <div class="page-header">
+          <h1><a class="homepage" href="/"><img src="/static/img/rad_small.png"> sasbury.com</a></h1>
+        </div>
+
+        <div id="content">
+           
+
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+    <h2>Tagged Logging</h2>
+
+    <div>
+        <p>There are a lot of logging libraries out there. <strong>A LOT.</strong> So why did I want to write a new one for a project we are doing at Fog Creek? The answer is <em>tags</em>.</p>
+<p>Logging libraries deal with two fundamental areas, what to log and where to log it. Where you log things is a question usually answered by the concept of appenders. People write appenders for files, rolling files, log stash, zeromq, and on and on... What you log is usually determined the name of a log and what must of us call a log level. Log levels vary from one libary to the next, but most libraries offer some concept of:</p>
+<ul>
+<li>An <em>error</em> that is very bad</li>
+<li>A <em>warning</em> about something that might be bad</li>
+<li>An <em>info</em> message is nice to know, but not a problem</li>
+<li>A <em>debug</em> message is for debugging</li>
+</ul>
+<p>The trick with log levels is that you usually want debug messages when you are developing, but not in production. So what do you do when you have a problem in production? One option is to restart the service with debug logging. Another is to avoid this issue all together and just always debug log. The problem with always logging debug messages is that they can make the log so verbose that you can't read the program flow very easily. So even if you normally run with debug messages off, if you turn them on to find a problem you might end up with an unmanageable situation on your hands. This is especially true when you are dealing with many concurrent requests.</p>
+<p>What many libraries do to help with this issue is to provide named logs. In Java, for example, people often have a logger for each package. This allows them to change the log level for one package without touching another package. This helps a bit. But I propose that the idea of tagged logs goes one step further.</p>
+<p>Tagged logging works like this. Each time you log a message you provide three pieces of information: the message, a log level and a set of tags. The logging package looks at the level and the tags and decides if the log message should be output. A default level can be used to set a base point, while specific levels can be assigned for each tag. For example, if the default log level <em>info</em>, you can set a level of <em>debug</em> for messages tagged "network." This means that normally debug messages are ignored, but those messages with a tag of "network" are logged.</p>
+<p>The power of tags, over named loggers, is that they can cross cut loggers. So you can have multiple named loggers, and set various tag levels on each one, or 1 default tag level across them. By associating tags with concepts like "networking", "http", "database", etc... you can turn on debug logging for specific areas of the program separately.</p>
+<p>In other words, tags allow you to target log levels at what the code is doing, not which package the code is written in. The same function could have multiple logging statements with different tags.</p>
+<p>There are still some issues.</p>
+<p>If you have to turn a program off and on to change the logging levels you can't necessarily catch a problem. Turning off the program might "fix" it. To alleviate this situation, our Go library allows levels to be changed when the process receives a SIGHUP. The running process can change from info to debug logging without restarting.</p>
+<p>Ok, you say, that's great, but what if the problem happened 5 minutes ago. Changing the level now won't help. You're right. One of the motivations for logging and saving everything is this desire to have old info. There are a few ways to do this, and we have implemented both in our library.</p>
+<p>First, we allow log levels on appenders. So you can have an appender that is always capturing debug information into a short lived container, and another logger for the main log files.</p>
+<p>Second, we buffer failed logged messages. Not forever, but for a little while. In fact, we use a configurable circular buffer for any log message that doesn't pass the log level check. If an error occurs, before the buffer gets overrun, simply changing the log level and issuing a SIGHUP will print the newly allowed messages that were stored in the buffer out to the standard log location.</p>
+<p>I am not sure yet if all these features are too much for a logging library. People are moving toward an attitude that disk is cheap, just log everything and use processing to clean it up later. Perhaps that is the right way to go, although it does offer some performance issues for a server with a lot of clients trying to log information. But, we will know soon if our tagged logging library helps, and I will be sure to let you know.</p>
+<p>In fact, we intend to open source it once we get some production time under its belt.</p>
+<p>One last thing, tags can be dynamic. So as I was working on this project I realized that I could create a tag for each request and another for each account the request belongs to. This means that I can, while the program is running, change the log level to debug for a specific customer account. I think this is going to be a really powerful feature in production, but we will have to wait and see.</p>
+    </div>
+
+     
+        <div class="post_date_bottom">- Stephen (2015-1-26)</div>
+    
+
+    <div>
+        
+
+        
+            <a href="/tag/architecture/" class="tag">
+                architecture
+            </a>
+        
+            <a href="/tag/programming/" class="tag">
+                programming
+            </a>
+        
+
+        
+    </div>
+    
+    <div class="pull-right">
+        <a href="/notes/">Back to notebook</a>
+    </div>
+
+
+        </div>
+
+      </div>
+
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <div class="pull-right social">
+          
+          
+          <div class="rss">
+            <a href="/notes/sasbury_rss.xml">
+              <img src="/static/img/rss.png"/>
+            </a>
+          </div>
+
+          <div class="github">
+            <a href="https://github.com/sasbury">
+              <img src="/static/img/github_mark.png"/>
+            </a>
+          </div>
+
+          <div class="linkedin">
+            <a href="http://www.linkedin.com/pub/stephen-asbury/36/230/973">
+              <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_in_20x15.png" width="24" height="18" alt="View Stephen Asbury's LinkedIn profile">
+            </a>
+          </div>
+
+          <a href="https://twitter.com/thesasbury" class="twitter-follow-button" data-show-count="false">Follow @thesasbury</a>
+
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+          <div class="g-plusone" data-size="medium" data-annotation="inline" data-width="120"></div>
+          <script type="text/javascript">
+            (function() {
+              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+              po.src = 'https://apis.google.com/js/plusone.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+            })();
+          </script>
+        </div>
+
+        <p class="muted credit">Copyright &copy; 2015-2019 Stephen Asbury</p>
+      </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/prettify.js"></script>
+    <script src="/static/js/viz.js"></script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script src="/static/js/sasbury.js"></script>
+
+    <script>
+ 
+    $(document).ready(function() {
+        processSpecials();
+    });
+    </script>
+  </body>
+</html>
