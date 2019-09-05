@@ -149,7 +149,7 @@ for page in posts:
  
     item = PyRSS2Gen.RSSItem(
          title = page['meta']['title'],
-         link = 'http://www.sasbury.com'+'/'+page['path'],
+         link = 'https://www.sasbury.com'+'/'+page['path'],
          description = page['summary'],
          guid = PyRSS2Gen.Guid('/'+page['path']),
          pubDate = dt)
@@ -158,7 +158,7 @@ for page in posts:
 
 rss = PyRSS2Gen.RSS2(
     title = "sasbury.com feed",
-    link = "http://www.sasbury.com",
+    link = "https://www.sasbury.com",
     description = "sasbury.com RSS feed",
     docs = '',
     lastBuildDate = datetime.utcnow(),
