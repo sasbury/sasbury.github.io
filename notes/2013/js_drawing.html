@@ -90,8 +90,8 @@ $('.shared').each(function(index,element){
 
   sharedCode += $(element).text();
   sharedCode += &quot;\n&quot;;
-});</code></pre>
-
+});
+</code></pre>
 
 <p>then I process the drawing elements:</p>
 <pre class="codehilite"><code>$('.drawable').each(function(index,element){
@@ -122,8 +122,8 @@ $('.shared').each(function(index,element){
     {
       $('#log-'+index).append(err.message+'\n');
     }
-});</code></pre>
-
+});
+</code></pre>
 
 <p>as with the code to process runnable code examples, this code just finds all of the drawable elements gets their content, augments that content and evaluates it. A canvas and pre element are also added to the page for each drawable element.</p>
 <p>The default fill style is set to black to make it easy to draw in examples.</p>

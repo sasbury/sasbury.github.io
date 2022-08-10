@@ -122,8 +122,8 @@ the problem that he will see two items labelled 1.</p>
 designed with a bit more information then you might be able to combine two
 databases and still provide unique access. Suppose that your product uses URIs
 of the form:</p>
-<pre class="codehilite"><code>http://host:port/projectName/items/itemNumber</code></pre>
-
+<pre class="codehilite"><code>http://host:port/projectName/items/itemNumber
+</code></pre>
 
 <p>Now there are really two unique items in the URI, the project name and the item
 number. It doesn't matter if you store the data in a single database or
@@ -138,8 +138,8 @@ IDs?</p>
 <p>One possible lesson from the previous discussion is to build IDs from
 multiple pieces of information. Perhaps the simplest way to think of this is to
 build ids of the form:</p>
-<pre class="codehilite"><code>projectName-itemNumber</code></pre>
-
+<pre class="codehilite"><code>projectName-itemNumber
+</code></pre>
 
 <p>So you might have an item A-1 and an item B-1. If you combine the two projects,
 you would perhaps create new IDs of the form C-1 where, C is the new project
@@ -152,8 +152,8 @@ unique. So now you have the problem that two customers can't have a project A.</
 <p>There is another way to craft this solution. If you have access to a shared
 database that cuts across all of the projects, you can assign unique project
 IDs to projects, and use them in the user visible item IDs:</p>
-<pre class="codehilite"><code>projectNumber-itemNumber</code></pre>
-
+<pre class="codehilite"><code>projectNumber-itemNumber
+</code></pre>
 
 <p>Now you can be sure the project number's are unique, and the item numbers are
 unique per-project, so combining two project databases can allow you to keep
@@ -176,12 +176,12 @@ a character, for a flag
 to tell us the id format followed by a set of bytes for something like the
 project id and then a simple incrementing part number. This could lead to
 something like:</p>
-<pre class="codehilite"><code>flag - database id - part number</code></pre>
-
+<pre class="codehilite"><code>flag - database id - part number
+</code></pre>
 
 <p>or specifically:</p>
-<pre class="codehilite"><code>0 - 23 - 461</code></pre>
-
+<pre class="codehilite"><code>0 - 23 - 461
+</code></pre>
 
 <p>which could then be encoded into hexadecimal or base64 with some padding to
 ensure that the boundaries work out. This only leaves the question of what to

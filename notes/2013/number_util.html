@@ -54,8 +54,8 @@
     retVal[1] = (byte) ((s &gt;&gt;&gt; 8) &amp; 0xFF);
 
     return retVal;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>and to get it back to a short I do:</p>
 <pre class="codehilite"><code>public static short convertToShort(byte[] bytes)
@@ -80,8 +80,8 @@
     }
 
     return retVal;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Note that I support an array of 1 or 2 bytes, so that you can pack things as you want.</p>
 <p>There are a number of methods to take a number and encoded it onto an interval using steps. This allows you to compact a number into a small binary representation with some loss flexibility and/or accuracy.</p>
@@ -102,8 +102,8 @@
     }
 
     return retVal;
-}</code></pre>
-
+}
+</code></pre>
 
 <p><a href="https://github.com/sasbury/numberutils_java">GitHub Repository</a></p>
     </div>

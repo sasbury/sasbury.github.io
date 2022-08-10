@@ -75,8 +75,8 @@
         &lt;/run&gt;
         .. other runs ..
     &lt;/run_desc&gt;
-&lt;/genetik&gt;</code></pre>
-
+&lt;/genetik&gt;
+</code></pre>
 
 <p>Basically a run group is a collection of runs. The group has some configuration, including a name used to create the folder where results are stored. Each run can also have parameters. However, these parameters are expressed as substitutions into the evdesc.xml file. By default, all settings for a run are in the associated evdesc.xml file.</p>
 <p>The runs in a run group can be in one of two styles. In the most simple case a run group has a collection of unrelated runs. This feature is used to run multiple copies of the same run, or to perform multiple runs with slightly different parameters.</p>
@@ -128,8 +128,8 @@
 
   &lt;/available_fitness_tests&gt;
     &lt;/evolution_desc&gt;
-&lt;/genetik&gt;</code></pre>
-
+&lt;/genetik&gt;
+</code></pre>
 
 <p>Fitness tests in Genetik 1.0 are implemented by extending the FitnessTest class. Subclasses need to implement a a single method that takes the results from a Sting program, interprets them as a chromosome and scores that chromosome. The following example is the code from the curve fit example's fitness function. The utility method extractIntegerProgramResults is used to remove the integers from the program that represent our chromosome. Then the mean square is calculated, scaled and returned. If an error occurs, a very bad fitness of <code>-1000</code> is returned. Also, the user data on the program is set. This data will be saved to disk and can be useful for debugging purposes.</p>
 <pre class="codehilite"><code>public double calculateRawScore(ExecutionContext context)
@@ -165,8 +165,8 @@
     }
 
     return retVal;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Genetik 1.0 included code to run in batch mode on the University of Michigan cluster as well as on the command line or embedded in another Java application.</p>
 <h3>Running Genetik 2.0</h3>
@@ -235,8 +235,8 @@ estimated_time=200:00:00
 procs=46
 job_qos=hagar_flux
 job_queue=flux
-account=hagar_flux</code></pre>
-
+account=hagar_flux
+</code></pre>
 
 <p>Some items worth noting in this run description are the way a set of MGGA runs are defined using the key array value array of keys pattern is used. Also, properties can be passed to the fitness functions, like the command line for MCNP. Genetik 1.0 used an XML based reporting scheme. The 2.0 library moved to an HTML+Javascript scheme that allows custom web pages and files to be included. These appear the <em>Reporting Settings</em> section of the example. Genetik 2.0 also provided a simple way to pass information about the cluster, which is appears at the bottom of this file.</p>
 <p>Perhaps the biggest change that 2.0 made is how chromosomes are stored. In 1.0 the chromosomes are Sting programs. In 2.0 they are objects that can be anything. This simplifies problems where the chromosome is just an array of numbers.</p>
@@ -350,8 +350,8 @@ public class ShortestPathFitTest
 
         return retVal;
     }
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Like Genetik 1.0, the 2.0 version of the library includes code to run on the University of Michigan cluster as well as from the command line.</p>
     </div>

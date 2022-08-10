@@ -61,8 +61,8 @@ struct listnode{
     struct listnode *next;
     id key;
     id value;
-};</code></pre>
-
+};
+</code></pre>
 
 <p>In Java:</p>
 <pre class="codehilite"><code>public class DoubleDoubleMap
@@ -77,8 +77,8 @@ class DoubleDoubleNode
     DoubleDoubleNode next;
     double key;
     double value;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Or in Go (note, we don't need a value for a set, only the key):</p>
 <pre class="codehilite"><code>type TagSet struct {
@@ -91,8 +91,8 @@ class DoubleDoubleNode
 type tagSetNode struct {
     next *tagSetNode
     key  string
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Collisions, where two keys have the same hash value, are handled using these linked lists. To look up an item, you:</p>
 <ul>
@@ -131,8 +131,8 @@ type tagSetNode struct {
         }
     }
     return returnValue;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>or Java:</p>
 <pre class="codehilite"><code>public double get(double c)
@@ -165,8 +165,8 @@ type tagSetNode struct {
         }
     }
     return returnValue;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>or Go:</p>
 <pre class="codehilite"><code>func (set *TagSet) Contains(key string) bool {
@@ -181,8 +181,8 @@ type tagSetNode struct {
     }
 
     return false
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Adding items to the hashtable is more complicated. For performance reasons we want to grow the main array if there are enough items in the table. This attempts to insure that the table is sparse, with short linked lists. If the linked lists get too long the hashtable looses its main performance beneifit which is near constant time regardless of size. An easy example of this is the degenerate case of a hashtable with a main array of length 1. If you put 100 items into that hashtable they are all in a linked list. Which means that finding an item is O(n), the worst case. But if we keep the main array large compared to the number of elements in the table we can hope that they aren't all stacked at one index, and they shouldn't be unless the hash function is terrible.</p>
 <p>So, in Java, my add method looks like this:</p>
@@ -277,8 +277,8 @@ type tagSetNode struct {
         }
     }
     return valueToReturn;
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Note the use of <code>NumberUtils.ceilPrime</code>. This is my simple way of trying to use prime number sized tables. The Java version of this class is available on <a href="https://github.com/sasbury/numberutils_java">github</a>. By using primes, I am trying to improve my chances of getting fewer collisions when I modulo the hash by the size of the main array.</p>
 <p>Of course there are some other useful methods on hashtables, you can see my full implmentation for each of these on <a href="[github](https://github.com/sasbury/hashtables)">github</a>.</p>
@@ -291,8 +291,8 @@ type tagSetNode struct {
         val += (val * 37) + uint32(key[i])
     }
     return val
-}</code></pre>
-
+}
+</code></pre>
 
 <p>And Blake, it was fun to look back on some of this old code, even if it did make me feel old.</p>
     </div>

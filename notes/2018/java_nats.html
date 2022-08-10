@@ -46,8 +46,8 @@
     <div>
         <p>Today I released my first software for Synadia. I was tasked with re-writing the <a href="https://github.com/nats-io/java-nats">Java client library for NATs</a>, and despite a few hiccups released a library I am really proud of today. The new library is easy to use for publishing messages:</p>
 <pre class="codehilite"><code>Connection nc = Nats.connect(&quot;nats://myhost:4222&quot;);
-nc.publish(&quot;subject&quot;, &quot;hello world&quot;.getBytes(StandardCharsets.UTF_8));</code></pre>
-
+nc.publish(&quot;subject&quot;, &quot;hello world&quot;.getBytes(StandardCharsets.UTF_8));
+</code></pre>
 
 <p>and allows the developer to control threading for listening to messages:</p>
 <pre class="codehilite"><code>Dispatcher d = nc.createDispatcher((msg) -&gt; {
@@ -55,8 +55,8 @@ nc.publish(&quot;subject&quot;, &quot;hello world&quot;.getBytes(StandardCharset
     ...
 });
 
-d.subscribe(&quot;subject&quot;);</code></pre>
-
+d.subscribe(&quot;subject&quot;);
+</code></pre>
 
 <p>On top of that it supports TLS and is really fast. On my work machine I am getting the following performance as measured by an automated benchmark I included in the code. Over 10M/s messages published and the possibility of 4M/sec round trip is really cool. Also, the latency is around 50-60 microseconds on average which isn't quite the numbers I got with the <a href="/projects/ftl_java.html">Java FTL client</a>, but that was all JNI and this is pure Java with no external dependencies. The library even uses a simple regex-based parser for the INFO message sent from the server to avoid a dependency. So all this performance fits in a 68k jar file.</p>
 <pre class="codehilite"><code>Running warmup
@@ -102,8 +102,8 @@ Latency 512b  5,000     42 /  57.59 / 182    +/- 0.93  (microseconds)
 Latency 1k    5,000     35 /  48.96 / 164    +/- 0.79  (microseconds)
 Latency 4k    5,000     37 /  51.73 / 232    +/- 0.84  (microseconds)
 Latency 8k    5,000     39 /  56.14 / 344    +/- 0.91  (microseconds)
-Final memory usage is 5.99 gb / 6.05 gb / 14.22 gb free/total/max</code></pre>
-
+Final memory usage is 5.99 gb / 6.05 gb / 14.22 gb free/total/max
+</code></pre>
 
 <p>One of the great things about this project is that I got to dive in to the <a href="https://nats.io/documentation/internals/nats-protocol/">NATs protocol</a>. The protocol is very simple, but supports messaging in a fast, simple way. I am really happy with this first project, and looking forward to the next (although hoping it is in go instead of Java.)</p>
     </div>

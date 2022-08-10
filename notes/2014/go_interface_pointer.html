@@ -48,26 +48,26 @@
 <p>Suppose we start with an interface.</p>
 <pre class="codehilite"><code>type Hello interface {
     SayHello()
-}</code></pre>
-
+}
+</code></pre>
 
 <p>In order to use the interface, we simply refer to it as a type. For example, we might create a function like this:</p>
 <pre class="codehilite"><code>func TellThemHello(hello Hello) {
     hello.SayHello()
-}</code></pre>
-
+}
+</code></pre>
 
 <p>You can't use a pointer to the interface.</p>
 <pre class="codehilite"><code>func TellThemHello(hello *Hello) { //This won't work
     hello.SayHello()
-}</code></pre>
-
+}
+</code></pre>
 
 <p>If you try, you will get an error.</p>
 <pre class="codehilite"><code>src/interfacePointer/main.go:38: cannot use helloPointer (type *MyPointerHello) as type *Hello in argument to TellThemHello:
 
-    *Hello is pointer to interface, not interface</code></pre>
-
+    *Hello is pointer to interface, not interface
+</code></pre>
 
 <p>For a type to implement the interface it has to define the <code>SayHello()</code> method. So let's create a custom type that implements Hello as a pointer.</p>
 <pre class="codehilite"><code>type MyPointerHello struct {
@@ -76,26 +76,26 @@
 
 func (self *MyPointerHello) SayHello() {
     fmt.Printf(&quot;Hello %v\n&quot;, self.Name)
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Notice that <code>SayHello()</code> expects a pointer to a <code>MyPointerHello</code>. If we try to pass a non-pointer, or value, as the interface, it won't work, because the non-pointer doesn't implment the method. For example, if we try to compile:</p>
 <pre class="codehilite"><code>var helloPointer MyPointerHello //This should be a pointer
 helloPointer.Name = &quot;From A Pointer&quot;
-TellThemHello(helloPointer)</code></pre>
-
+TellThemHello(helloPointer)
+</code></pre>
 
 <p>The compiler will fail with the error.</p>
 <pre class="codehilite"><code>src/interfacePointer/main.go:39: cannot use helloPointer (type MyPointerHello) as type Hello in argument to TellThemHello:
 
-MyPointerHello does not implement Hello (SayHello method has pointer receiver)</code></pre>
-
+MyPointerHello does not implement Hello (SayHello method has pointer receiver)
+</code></pre>
 
 <p>However, if we use a pointer to a MyPointerHello we can compile the program error free.</p>
 <pre class="codehilite"><code>var helloPointer = new(MyPointerHello)
 helloPointer.Name = &quot;From A Pointer&quot;
-TellThemHello(helloPointer)</code></pre>
-
+TellThemHello(helloPointer)
+</code></pre>
 
 <p>The same is true from the other other side. If you define a type that implements <code>Hello</code> as a value.</p>
 <pre class="codehilite"><code>type MyStackHello struct {
@@ -104,14 +104,14 @@ TellThemHello(helloPointer)</code></pre>
 
 func (self MyStackHello) SayHello() {
     fmt.Printf(&quot;Hello %v\n&quot;, self.Name)
-}</code></pre>
-
+}
+</code></pre>
 
 <p>You use it as a value.</p>
 <pre class="codehilite"><code>var helloOnStack MyStackHello
 helloOnStack.Name = &quot;From The Stack&quot;
-TellThemHello(helloOnStack)</code></pre>
-
+TellThemHello(helloOnStack)
+</code></pre>
 
 <p>Combining these use cases we can do:</p>
 <pre class="codehilite"><code>func main() {
@@ -124,20 +124,20 @@ TellThemHello(helloOnStack)</code></pre>
 
     TellThemHello(helloOnStack)
     TellThemHello(helloPointer)
-}</code></pre>
-
+}
+</code></pre>
 
 <p>Compiling and running this code gives us the following output.</p>
 <pre class="codehilite"><code>Hello From The Stack
-Hello From A Pointer</code></pre>
-
+Hello From A Pointer
+</code></pre>
 
 <p>Now you might think you can just define <code>SayHello()</code> for both. But this is not allowed, and represents a redeclaration.</p>
 <pre class="codehilite"><code># command-line-arguments
 src/interfacePointer/main.go:25: method redeclared: MyStackHello.SayHello
     method(MyStackHello) func()
-    method(*MyStackHello) func()</code></pre>
-
+    method(*MyStackHello) func()
+</code></pre>
 
 <p>So, to sum it all up:</p>
 <ul>

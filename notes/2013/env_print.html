@@ -51,8 +51,8 @@
 public class EnvPrint
 {
     public static void main(String args[])
-    {</code></pre>
-
+    {
+</code></pre>
 
 <p>The first step is to get the system environment and print a header.</p>
 <pre class="codehilite"><code>        Map&lt;String,String&gt; env = System.getenv();
@@ -62,8 +62,8 @@ public class EnvPrint
         System.out.println(&quot;===== System Environment =====&quot;);
         System.out.println();
 
-        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();</code></pre>
-
+        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();
+</code></pre>
 
 <p>I make a sorted list to make reading easier.</p>
 <pre class="codehilite"><code>        while(keys.hasNext())
@@ -72,8 +72,8 @@ public class EnvPrint
             list.add(key);
         }
 
-        Collections.sort(list);</code></pre>
-
+        Collections.sort(list);
+</code></pre>
 
 <p>Then print the names and values.</p>
 <pre class="codehilite"><code>        for(int i=0,max=list.size();i&lt;max;i++)
@@ -81,8 +81,8 @@ public class EnvPrint
             String key = list.get(i);
             String value = env.get(key);
             System.out.println(key+&quot; = &quot;+value);
-        }</code></pre>
-
+        }
+</code></pre>
 
 <p>Next I get the system properties and print them. Since one system property is the line separator, i escape occurrences of \n, \r and \f.</p>
 <pre class="codehilite"><code>        Properties props = System.getProperties();
@@ -110,12 +110,13 @@ public class EnvPrint
             value = value.replace(&quot;\r&quot;,&quot;\\r&quot;);
             value = value.replace(&quot;\f&quot;,&quot;\\f&quot;);
             System.out.println(key+&quot; = &quot;+value);
-        }</code></pre>
-
+        }
+</code></pre>
 
 <p>And that is all there is to it.</p>
 <pre class="codehilite"><code>    }
-}</code></pre>
+}
+</code></pre>
     </div>
 
      
